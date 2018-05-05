@@ -1,0 +1,319 @@
+\beginchapter Chapter 1. MIXSIM---\\The MIX Simulator
+
+\pageno=1
+\MIX, the \MIX\ simulator, incorporates all of the features described
+in~{\it TAOCP, sec.~\hbox{1.3.1}}, with the exception of floating-point
+arithmetic (which is not described in that section anyway, except by name).
+No extensions have been implemented, specifically there is no support for
+indirect addressing or for interrupts. These extensions are planned for a
+future version.
+
+Here's a quick overview of a \MIX\ computer's features:\smallskip
+\item{$\bullet$} 4000 words of memory;
+\item{$\bullet$} two word-sized registers called A and X;
+\item{$\bullet$} six signed registers of size two bytes each, called I1 through I6;
+\item{$\bullet$} one unsigned register of size two bytes, called J;
+\item{$\bullet$} a comparison indicator, which can have the value GREATER, EQUAL
+or LESS;
+\item{$\bullet$} an overflow flag;
+\item{$\bullet$} an instruction set of about 150 instructions;
+\item{$\bullet$} 21 optional input\slash output devices: eight tape drives, 
+eight disks, a card reader, a card punch, a line printer, a terminal and
+paper tape, all of which are asynchronous.
+
+\smallskip\noindent
+Each \MIX\ word is comprised of five bytes and a sign. One byte is equal to
+six bits, thus being able to have~64 distinct values.
+
+\subsection RUNNING THE SIMULATOR.
+The \MIX\ simulator can either run interactively or non-interactively. In
+non-interactive mode, it simply loads a compiled \MIX\ program and 
+runs it, producing whatever output the program is meant to produce, and
+then terminates. To run \MIX\ non-interactively, type
+\begindisplay
+|MIX --deck [filename]|&or&|MIX --binary [filename]|\cr
+\enddisplay
+where \<filename> is optional and if not given the standard input is
+assumed. The |--deck| and |--binary| switches instruct \MIX\ to interpret
+the input as punched cards (|--deck|) or a binary memory dump (|--binary|).
+
+In interactive mode, one may load and run programs, or execute them
+step by step, or even set execution breakpoints and inspect the
+machine's state---the values of the registers, the comparison indicator,
+the program counter~{\sl etc}. To run the simulator interactively,
+simply type |MIX| at the command prompt. The simulator welcomes
+you:
+\begintt
+This is MIX v0, (c) 2009 George Tryfonas
+An mplementation of the machine described by Don Knuth.
+|vskip1em
+Type '?' or 'help' at the prompt for instructions.
+>
+\endtt
+The |>| character is the simulator's prompt for your next command.
+You may quit the simulator by typing `|quit|' or `|bye|'.
+Commands are case-insensitive and can be categorized as follows:
+\smallskip
+\item{$\bullet$} execution commands (take care of loading programs
+to be executed and handle program execution);
+\item{$\bullet$} inspection commands (for inspecting the contents
+of simulated memory and registers);
+\item{$\bullet$} state altering commands (that allow you to change
+the contents of simulated memory and registers);
+\item{$\bullet$} device management commands (for inspecting the state
+of the devices and redirecting input\slash output).
+
+\smallskip\noindent
+The following sections provide a detailed overview of the
+available commands.
+
+\subsection EXECUTION COMMANDS.
+There are several commands that control the simulator's program
+loading and execution. Here is a list of them, and what they do.
+\medskip
+\item{|load <filename>|}Loads a binary memory dump
+from the file \<filename> and sets up the program execution.
+Firstly, it sets \MIX's memory contents to the contents of the
+memory dump; and then it sets the contents of the program counter
+to the location of the instruction where execution is to begin.
+\item{}When the simulator loads the memory dump, control is returned to
+you after a confirmation message. For example:
+\begintt|hsize=31.5pc
+> load primes.dump
+Loaded 40 word(s). PC set to 3000
+>
+\endtt
+at which point you may begin execution, set breakpoints, {\sl etc}.
+\smallskip
+\item{|loaddeck <filename>|}Instructs the simulator
+to load the first card from the card deck specified in \<filename>
+and begin execution at location $0$. This implies that the card
+reader device (device~$16$) is redirected to \<filename>. Since
+program execution begins immediately, you must set the desired
+breakpoints, if any, before using `|loaddeck|'.
+\item{}The reason for this is that `|loaddeck|' behaves in the way described
+in~{\it TAOCP, sec.~\hbox{1.3.1}, ex.~$26$}: the first two cards in the
+deck contain a loading routine, whose purpose is to load the rest of the
+program into the correct memory locations and jump to the program
+beginning. Therefore, no part of the program itself is loaded until this
+loader routine has executed completely.\smallskip
+\item{|go| or |run|}Begin execution at the location
+pointed by the program counter. Execution does not stop unless it
+reaches a breakpoint.\smallskip
+\item{|step|}Execute the instruction pointed by the program counter.
+Only one instruction is ever executed.
+\smallskip
+\item{|show time|}This command shows how much time has been spent on
+program execution. Each \MIX\ instruction takes a specific amount of simulated
+time to execute, so for instance the PRIMES program takes $190908u$, where
+$u$ is an unspecified time unit.\smallskip
+\item{|set breakpoint|}Set a breakpoint at a memory location. The
+command `|set breakpoint <x>|' (or `|set bp <x>|' for short) sets
+an execution breakpoint at memory location \<x>. \<x> can be a
+number from~$0$ to~$3999$ or, if you loaded a memory dump, a symbol.
+Each breakpoint that gets |set| is assigned a unique integer identifier.
+\smallskip
+\item{|show breakpoint|}Shows a list of all the breakpoints you have
+set, along with their unique identifier:
+\begintt|hsize=31.5pc
+> set bp START
+> set bp 3006
+> show bp
+0 @ 3000
+1 @ 3006
+>
+\endtt
+In this example, |START| is a symbol for the value $3000$. You may
+also issue |show bp <n>| where \<n> is an integer, which will show
+only the breakpoint whose unique identifier is equal to~\<n>.
+\smallskip
+\item{|clear breakpoint|}Clears a breakpoint that has previously been
+set. The syntax is |clear breakpoint [n|\||all]|, where \<n> is an
+integer. If \<n> is specified, then the breakpoint whose unique
+identifier is equal to~\<n> is removed from the breakpoint list.
+Otherwise, if~\<n> is not specified, or if `|all|' is specified
+instead of~\<n>, all the breakpoints in the breakpoint list
+are removed.
+
+\subsection INSPECTION COMMANDS.
+The simulator gives you the chance to inspect the machine's state using
+a host of inspection commands, all of which begin with `|show|':\medskip
+\item{|show symbols|}When a memory dump has been loaded (and only a
+memory dump), you may take a look at the symbol table by issuing the
+`|show symbols|' command. You may also issue a `|show symbol x|', where
+\<x> is a symbol name, to inspect just the value of that particular
+symbol. Example:
+\begintt|hsize=31.5pc
+> show symbols
+L      = [+||00||00||00||07||52||] =  500 = '   G@'
+OUTDEV = [+||00||00||00||00||18||] =   18 = '    Q'
+PRIME  = [-||00||00||00||00||01||] =   -1 = '    A'
+BUF0   = [+||00||00||00||31||16||] = 2000 = '   1O'
+BUF1   = [+||00||00||00||31||41||] = 2025 = '   1,'
+START  = [+||00||00||00||46||56||] = 3000 = '   *?'
+||2-1||  = [+||00||00||00||46||59||] = 3003 = '   *?'
+||4-1||  = [+||00||00||00||46||62||] = 3006 = '   *?'
+||6-1||  = [+||00||00||00||47||00||] = 3008 = '   / '
+||2-2||  = [+||00||00||00||47||08||] = 3016 = '   /H'
+||2-3||  = [+||00||00||00||47||11||] = 3019 = '   /J'
+||4-2||  = [+||00||00||00||47||12||] = 3020 = '   /K'
+TITLE  = [+||00||00||00||31||11||] = 1995 = '   1J'
+=1-L=  = [+||00||00||00||32||02||] = 2050 = '   2B'
+=3=    = [+||00||00||00||32||03||] = 2051 = '   2C'
+>
+\endtt\smallskip
+\item{|show memory|}You may inspect the contents of \MIX's memory by issuing
+the `|show memory|' command (or `|show mem|' for short). This command, if
+given without any arguments, shows the contents of all of \MIX's memory,
+starting at location~$0$ and up to~$3999$. If, however, you specify a
+range, you will get a portion of the memory contents:
+\begintt|hsize=31.5pc
+> show mem 3000 3010
+MEMORY CONTENTS (3000 TO 3010)
+|vskip1em
+@3000: [+||00||00||00||18||35||] =       1187 = '   Q5'
+@3001: [+||32||02||00||05||09||] =  537395529 = '2B EI'
+@3002: [+||32||03||00||05||10||] =  537657674 = '2C E?'
+@3003: [+||00||01||00||00||49||] =     262193 = ' A  $'
+@3004: [+||07||51||01||05||26||] =  130814298 = 'G>AEW'
+@3005: [+||47||08||00||01||41||] =  790626409 = '/H A,'
+@3006: [+||00||02||00||00||50||] =     524338 = ' B  <'
+@3007: [+||00||02||00||02||51||] =     524467 = ' B B>'
+@3008: [+||00||00||00||02||48||] =        176 = '   B='
+@3009: [+||00||00||02||02||55||] =       8375 = '  BB''
+@3010: [-||00||01||03||05||04||] =    -274756 = ' ACED'
+>
+\endtt
+Ranges are pairs \<$x$\]$y$>, for instance, 
+$3000$\]$3010$ as in the above example. However $x$ or $y$ are
+not limited to integers: symbols may be specified as well, as
+in |show mem START 3010|, which produces exactly the same output
+as above, given that |START| is a symbol whose value equals~$3000$.
+\item{}You may also wish to see a disassembly of the memory contents
+in the range specified. To do this, type `|with disassembly|'
+(or `|with dasm|' for short) after a range---and only after
+a range:
+\begintt|hsize=31.5pc
+> show mem START 3010 with disassembly
+MEMORY CONTENTS (3000 TO 3010)
+|vskip1em
+@3000: [+||00||00||00||18||35||] =       1187 = '   Q5'       IOC 0(2:2)
+@3001: [+||32||02||00||05||09||] =  537395529 = '2B EI'       LD1 2050
+@3002: [+||32||03||00||05||10||] =  537657674 = '2C E?'       LD2 2051
+@3003: [+||00||01||00||00||49||] =     262193 = ' A  $'       INC1 1
+@3004: [+||07||51||01||05||26||] =  130814298 = 'G>AEW'       ST2 499,1
+@3005: [+||47||08||00||01||41||] =  790626409 = '/H A,'       J1Z 3016
+@3006: [+||00||02||00||00||50||] =     524338 = ' B  <'       INC2 2
+@3007: [+||00||02||00||02||51||] =     524467 = ' B B>'       ENT3 2
+@3008: [+||00||00||00||02||48||] =        176 = '   B='       ENTA 0
+@3009: [+||00||00||02||02||55||] =       8375 = '  BB''       ENTX 0,2
+@3010: [-||00||01||03||05||04||] =    -274756 = ' ACED'       DIV -1,3
+>
+\endtt
+\item{|show state|}Shows \MIX's internal state. It produces
+a list with the contents of all registers, $r$A, $r$X, $r$J, $r$I\<$1$--$5$>,
+the overflow flag, the comparison indicator and the program counter:
+{\begintt |hsize=31.5pc
+> show state
+ A: [+||00||00||00||00||00||] = 0 = '     '
+ X: [+||00||00||00||00||00||] = 0 = '     '
+ J: [+||00||00||00||00||00||] = 0 = '     '
+I1: [+||00||00||00||00||00||] = 0 = '     '
+I2: [+||00||00||00||00||00||] = 0 = '     '
+I3: [+||00||00||00||00||00||] = 0 = '     '
+I4: [+||00||00||00||00||00||] = 0 = '     '
+I5: [+||00||00||00||00||00||] = 0 = '     '
+I6: [+||00||00||00||00||00||] = 0 = '     '
+Overflow: False
+CI: EQUAL
+PC: 3000
+>
+\endtt}%
+You may also issue the command `|show <reg>|' where \<reg> can be any one
+of the above registers or flags to see the contents of that specific item.
+\item{|verbose|}Toggles verbosity on and off. When verbose is on, after
+each `|step|' command, and after program termination following a `|run|'
+command, a `|show state|' is executed automatically. You may check whether
+verbose is on or off by issuing the `|show verbose|' command.
+
+\subsection STATE ALTERING COMMANDS.
+There exist various commands which alter the simulator's state between
+execution. All of these commands begin with `|set|'. Here is a list of these:
+\medskip
+\item{|set memory|}Alters the contents of a single memory cell. The syntax is
+|set memory <loc> <data>|, where \<loc> is a memory location and \<data> is
+an integer value. As is the case with |show memory|, the \<loc> parameter
+may be a symbol.\smallskip
+\item{|set <reg> <value>|}Alters the contents of one of \MIX's registers.
+The \<value> parameter is an integer while the \<reg> parameter can be one
+of the nine \MIX\ registers or the program counter, in the form |rA|, |rX|, 
+|rJ|, |rI1| to~|rI6| and |PC|.
+
+\subsection DEVICE MANAGEMENT COMMANDS.
+\MIX\ has an array of input\slash output device units that programs may use.
+The most common one is the line printer, however \MIX\ is also supplied with
+tape drives, disks, a card reader, a card punch and a paper tape. All of
+these devices have been implemented and you may inpspect or alter their
+status using the following commands:\medskip
+\item{|show devices|}Shows a list of \MIX's devices. For example:
+\begintt|hsize=31.5pc
+> show devices
+UNIT #0: NOT INSTALLED
+UNIT #1: NOT INSTALLED
+UNIT #2: NOT INSTALLED
+UNIT #3: NOT INSTALLED
+UNIT #4: NOT INSTALLED
+UNIT #5: NOT INSTALLED
+UNIT #6: NOT INSTALLED
+UNIT #7: NOT INSTALLED
+UNIT #8: NOT INSTALLED
+UNIT #9: NOT INSTALLED
+UNIT #10: NOT INSTALLED
+UNIT #11: NOT INSTALLED
+UNIT #12: NOT INSTALLED
+UNIT #13: NOT INSTALLED
+UNIT #14: NOT INSTALLED
+UNIT #15: NOT INSTALLED
+UNIT #16: NAME: CARD_READER, BLOCK SIZE: 16, BACKING STORE: CONSOLE
+UNIT #17: NOT INSTALLED
+UNIT #18: NAME: LINE_PRINTER, BLOCK SIZE: 24, BACKING STORE: CONSOLE
+UNIT #19: NAME: TERMINAL, BLOCK SIZE: 14, BACKING STORE: MEMORY
+UNIT #20: NOT INSTALLED
+>
+\endtt
+which displays various kinds of information for each device. In this
+specific example, there are no installed tape or disk units, card punch
+or paper tape. However the card reader, the line printer and the
+terminal are present. The first two are connected to the console---so
+if a program sends output to the line printer it is displayed on the
+screen, and if it request input from the card reader it is read from
+the keyboard. You may also issue the command |show device <d>| where
+\<d> is an integer from~$0$ to~$20$, indicating a unit number, to
+get information on that specific device unit.\smallskip
+\item{|redirect|}Redirects a device to a specified file. The syntax is:
+\begindisplay\hsize=31.5pc
+|redirect <d> <filename>|&or&|redirect <d> console|
+\enddisplay
+where \<d> is an integer from~$0$
+to~$20$ representing the device unit. If a filename is specified then
+input\slash output is done using that file. Otherwise if you say
+|console| then input\slash output is done using the standard input\slash
+output. You cannot redirect a device to a file called |console|.
+\item{|set device|}Alters the synchronicity of a device. The syntax is
+\begindisplay\hsize31.5pc
+|set device <d> sync|&or&|set device <d> async|
+\enddisplay
+where \<d> is the device unit number. |sync| and |async| specify the
+mode in which device \<d> will operate. By default each device is
+asynchronous, which means that as soon as an input\slash output
+operation is executed by a running program, control is returned to
+that program and the input\slash output operation continues to
+execute in the background. Note that this is not in the formal
+specification of \MIX.
+\endchapter
+
+Japhy, do you think God made the world to amuse himself
+because he was bored? Because if so he would have to be mean.
+\author{JACK KEROUAC}, {\sl The Dharma Bums} (1958)
+
+\eject

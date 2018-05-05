@@ -1,0 +1,76 @@
+% Macros for MIXWare Report
+
+\newif\ifusehrule
+\newcount\utilmix
+
+\def\loccount{{\ooalign{\hfil\lower.07ex\hbox{|*|}\hfil\crcr\Orb}}}
+\def\MIX{{\tt MIX}}
+\def\MIXAL{{\tt MIXAL}}
+\def\lalr#1{{\sl LALR}(#1)}
+\def\ll#1{{\sl LL}(#1)}
+
+\def\beginlisting{
+\bgroup\offinterlineskip\halign\bgroup\offinterlineskip
+\vbox{\offinterlineskip\hbox{\vrule height2pt width0pt}\hbox{\strut\tt##:\hfil}\hbox{\vrule height2pt width0pt}}\quad&% memory location
+##&% instruction word
+\quad\hfil\vbox{\offinterlineskip\hbox{\vrule height2pt width0pt}\hbox{\strut\sevenrm##}\hbox{\vrule height2pt width0pt}}&% line number
+\ \vbox{\offinterlineskip\hbox{\vrule height2pt width0pt}\hbox to 20pc{\strut##\hfil}\hbox{\vrule height2pt width0pt}}\cr% source code
+}
+
+\def\endlisting{\egroup\egroup}
+
+\def\mixword#1.#2.#3.#4.#5.#6.{%
+  \vbox{\offinterlineskip%
+	\ifnum\count0>\utilmix
+	  \global\utilmix=\count0\hrule
+	\else
+	  \ifusehrule\hrule\fi
+	\fi%
+	\global\usehrulefalse%
+  	\hbox{\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt}%
+  	\hbox{%
+  		\vrule%
+  		\hbox to 15pt{\strut\hfil#1\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#2\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#3\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#4\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#5\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#6\hfil}%
+  		\vrule%
+  	}%
+  	\hbox{\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt}%
+    \hrule%
+  }%
+}
+
+\def\mixinst#1.#2.#3.#4.#5.{%
+  \offinterlineskip\vbox{\offinterlineskip%
+	\ifnum\count0>\utilmix
+	  \global\utilmix=\count0\hrule
+	\else
+	  \ifusehrule\hrule\fi
+	\fi%
+	\global\usehrulefalse%
+  	\hbox{\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt}%
+  	\hbox{%
+  		\vrule%
+  		\hbox to 15pt{\strut\hfil#1\hfil}%
+  		\vrule%
+  		\hbox to 30.4pt{\hfil\tt#2\thinspace}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#3\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#4\hfil}%
+  		\vrule%
+  		\hbox to 15pt{\hfil\tt#5\hfil}%
+  		\vrule%
+  	}%
+  	\hbox{\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt\hskip15pt\vrule height2pt}%
+    \hrule%
+  }%
+}

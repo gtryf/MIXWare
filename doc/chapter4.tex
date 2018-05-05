@@ -1,0 +1,398 @@
+\beginchapter Chapter 4. Assembler Implementation
+
+As with most compilers, |MIXASM| is divided into three important units:
+\smallskip
+\item{1.}The scanner;
+\item{2.}The parser; and
+\item{3.}The code generator.
+\smallskip\noindent
+We shall consider each unit in turn, in this order. But first, let us restate some
+important language rules concerning the symbols that may appear in the source code,
+in order to justify some of the decisions that have been taken. For a full treatment
+of the language rules, albeit somewhat informal, see~{\it TAOCP, sec.~1.3.1,
+pp. $153$--$156$}.
+\smallskip
+\item{\sl Format}Each line in a \MIXAL\ source code file may be empty, in which
+case it is ignored, or nonempty in which case it represents a single instruction
+and it is divided in three fields:
+(1)~the~|LOC| field, which may be blank; (2)~the~|OP| field, which is never blank;
+and (3)~the~|OPERAND| field, which may also be blank. Each field is separated by 
+one or more spaces or tabs (with one exception that we shall discuss later).
+Anything on a line that follows the |OPERAND| field is ignored. Lines that begin
+with the character `|*|' are ignored completely.
+\item{}The |OPERAND| field, when not blank, is divided further into: (1)~the~|ADDRESS|
+part; (2)~the~|INDEX| part; and (3)~the~|FIELD| part.
+\item{\sl Numbers}A {\it number\/} is a sequence of one to ten digits. Examples are
+|42| and |0005345|.
+\item{\sl Symbols}A {\it symbol\/} is a sequence of one to ten digits or letters
+containing at least one letter. For the purposes of this discussion, a symbol plays
+the r\^ole of a C identifier. Note however that, unlike most modern computer languages,
+the requirement that a symbol start with a letter is relaxed. Examples are `|HELLO|',
+`|GR8|' and `|10FOUR|'. Neither `|TEN_FOUR|' nor `|VERYLONGSYMBOLOF28CHARACTERS|'
+are valid symbols.
+\item{\sl Keywords}A {\it keyword\/} is a symbol that appears in the |OP| field
+of an instruction line and matches an item from \MIX's instruction set. Examples are 
+`|LDA|', `|STZ|' {\it etc}.
+\item{\sl Pseudos}A {\it pseudo-operation\/} is a symbol that appears in the |OP|
+field of an instruction line but does not generate a \MIX\ instruction. Instead it
+governs the assembly process in important ways. There are five \MIXAL\ pseudo-operations,
+namely `|ORIG|', `|EQU|', `|CON|', `|ALF|' and `|END|'.
+\item{\sl Strings}A symbol of five characters that appears next to an `|ALF|'
+pseudo-operation is called a {\it string}. Strings form an exception to the rule
+on dividing an instruction line, because they must be separated from the `|ALF|'
+pseudo-operation by {\it exactly} one or two spaces. If they are separated by
+one space then the next character must be non-blank. Otherwise any five characters
+from \MIX's character set may follow. For example: `|ALF|\]|FIRST|' defines the
+string `|FIRST|'; `|ALF|\]\]\]|FIVE|' defines the string `\]|FIVE|'.
+\item{\sl Locals}A symbol that appears in the |LOC| field and has the
+form $n$|H|, where $0\leq n\leq 9$ is a digit, has special meaning and is called a
+{\it local symbol}. Similarly, a symbol that appears in the |ADDRESS| field and has the
+form $n$|F| or $n$|B|, where $0\leq n\leq 9$, also has special meaning and
+is called a {\it local reference}. We shall discuss local symbols and references
+in a second.
+\medskip\noindent
+Symbols on each source code line are either {\it defined symbols} or {\it future
+references}. Defined symbols are the symbols that have already made an appearance 
+in the |LOC| field of a previous line, and when they do we shall call then {\it labels\/}
+unless they appear before an |EQU| pseudo-operation.
+
+A defined symbol has a value, called its {\it equivalent}, which is equal to the
+value of \loccount\ for the line on which this defined symbol appears as a label.
+However, if the defined symbol appears in the |LOC| field of an |EQU| pseudo-operation,
+its equivalent value is defined to be equal to the value of the |ADDRESS| field of
+the instruction. Symbols that are not defined symbols are called {\it future references}.
+It is illegal to define a symbol more than once in the source code.
+
+Each local symbol may appear multiple times in the source code, however this does
+not violate the multiple definitions rule, because each local symbol is internally
+given a different, unique name, and that internal name becomes the defined symbol.
+For $0\leq n\leq 9$, the local reference $n$|B| refers to the most recently defined
+local symbol $n$|H|, while $n$|F| refers to the next local symbol $n$|H| that will
+appear later on and therefore is always a future reference.
+
+\subsection THE SCANNER.
+We now turn our attention to the |MIXASM| scanner, which is the part of the
+assembler that reads an entire source code (input) file and tries to make sense
+of it. To this end, it scans the input on a line-by-line, character-by-character
+basis, ignoring parts of it that should be ignored, and forms strings according
+to specific rules. Instead of returing these strings {\it per se}, it categorizes
+them from a finite set of categories, called {\it tokens}, and returns a {\it token stream},
+which is a stream of `categorized strings'---plus some other book-keeping information,
+like the token's position in the source file {\it etc}.
+
+The most important task in designing the scanner is choosing an appropriate
+token set. Possibly the most na\"\i ve strategy would be to go with what the language
+rules state in plain English. For a line of \MIXAL\ code, according to the above
+informal description, and to Don Knuth's description in {\sl TAOCP}, this would be the set
+$$
+T_0=\bigl<{\bf symbol},{\bf number},{\bf string},\hbox{|+|},\hbox{|-|},
+\hbox{|*|},\hbox{|/|},\hbox{|//|},\hbox{|:|},
+\hbox{|=|},\hbox{|,|},\hbox{|(|},\hbox{|)|},{\bf whitespace}\bigr>
+$$
+where {\bf symbol}, {\bf number} and {\bf string} are as defined previously.
+However, this puts all the burden on the parser to make sense of what the scanner
+has recognized---and it is well known that parsers are tougher beasts than scanners
+to get to work correctly. For instance, is the symbol a label? Or is it a reference?
+Or maybe it is an instruction?
+
+A better approach would be to let the scanner make such decisions as a first
+step, which is not a very difficult task anyway. It can be easily implemented
+by letting the scanner be in one of four states $\bigl\{{\rm LOC},{\rm OP},
+{\rm OPERAND},{\rm STRING}\bigr\}$ and deciding the meaning of the symbol it just
+recognized. The scanner changes state as soon as it encounters whitespace, which is
+ignored. State changes happen in the order the states were listed, with the two
+last states sharing an equal position, {\it i.e.},
+LOC$\rightarrow$OP; OP$\rightarrow$OPERAND, or LOC$\rightarrow$OP;
+OP$\rightarrow$STRING. Whitespace itself is ignored completely, unless it is
+part of a string, in which case it becomes part of the token anyway.
+
+We make an extra distinction in the OP state: the token value is examined to
+ascertain whether it is a \MIX\ instruction or a \MIXAL\ pseudo-operation. The reason
+is that pseudo-operations are syntactically different than instructions, and
+recognizing them as such will better aid the parser to make sense of the |OPERAND|
+field. The token set then becomes:
+$$\displaylines{
+\quad T=\bigl<{\bf label},{\bf keyword},{\bf equ},{\bf orig},{\bf con},{\bf alf},
+{\bf end},\hfill\cr
+\hfill{\bf symbol},{\bf number},{\bf string},\hbox{|+|},\hbox{|-|},\hbox{|*|},
+\hbox{|/|},\hbox{|//|},\hbox{|:|},
+\hbox{|=|},\hbox{|,|},\hbox{|(|},\hbox{|)|}\bigr>\quad\cr
+}
+$$
+Note that the token set has been expanded with what amounts to `imaginary' tokens---%
+tokens that are lexically defined in exactly the same way as other tokens that
+already existed in our previous attempt: {\bf label}, {\bf keyword} and
+${\bf equ}\ldots{\bf end}$
+are lexically equivalent to the {\bf symbol} token. These tokens, however, have a
+semantic meaning which generally is left for the parser to discover. We have `cheated'
+here and let semantics creep into the scanner, but in effect things are simplified
+this way, and this is common to languages where whitespace or indentation is important,
+because the scanner gets to `see' the input directly, a benefit parsers don't enjoy.
+\smallskip
+Taking all the above into consideration, we create the |Scanner| class, which is initialized
+with a string and recognizes \MIXAL\ tokens. The available tokens are encapsulated in
+the |Token| structure whose most important properties are: (1)~|Type|, of the
+|TokenType| enumeration type; and (2)~|Text|, which is the actual token text. For example,
+the string `|42|' would be recognized as a token with |Type|$\,\equiv\,$|TokenType.Number|
+and with |Text|$\,\equiv\,$|"42"|.
+
+Tokens are recognized from the input string and placed in the |Tokens| property of
+the |Scanner| class, which is of type |IEnumerable<Token>|. This gives us serval
+advantages. Firstly, by |using System.LINQ|, we may exploit LINQ's extened syntax
+to query the enumeration---which turns out to be unnecessary after all, but it is
+there should one need it. Secondly, and more importantly, the token enumeration
+is constructed using |yield return| and iterators, which gives us the power of
+coroutines, a feature that our implementation language does not possess out of the
+box, but which turns up to be extremely useful in our case, because in this way
+we only read the next token when we actually need it and no sooner.
+
+\subsection THE PARSER.
+In general, the parser is the focal point in compiler writing, however important
+the other phases of the compiler may be. Getting the parser right is in many cases
+the key to efficiency as well as ease of further development. There exist a great
+variety of methods to develop parsers, as well as the associated literature. Methods
+range from top-down; bottom-up; no lookahead; $n$-token lookahead; table-driven;
+recursive; and all sorts of lovely combinations of these. Tools exist to help the
+compiler writer create his or her parser from an extended BNF grammar---most of
+these tools use the table-driven approach, but see |ANTLR| for an interesting
+tool that generates recursive-descent parsers. Other people prefer to roll their own.
+
+The most important choice to make here is whether to write our own parser or use
+a compiler-compiler to create it. The choice made was to write our own,
+but there are several factors that influenced this decision:\smallskip
+\item{\bull}\MIXAL\ is a truly simple language and using a general-purpose tool
+would be overkill;
+\item{\bull}There are no adequate tools known to the author that are both
+simple to use and generate efficient code for our implementation language
+(except, perhaps, for |ANTLR|, which again has its own issues);
+\item{\bull}Corollary of the above: it is usually the case that one has to
+take a break from the design/development of the compiler in order to learn how
+to use a particular tool, and, even more importantly, one may have to adapt
+one's design process to the peculiarities of that tool; (this remark, unfortunately,
+is relevant in other areas of application as well.)
+\item{\bull}Compiler-compilers generate table-driven parsers which are usually
+\lalr1. This is too much for \MIXAL, for which a simple \ll1 parser is sufficient;
+(again, see |ANTLR| for a compiler-compiler which generates recursive-descent
+\ll{$k$} parsers.)
+\smallskip\noindent
+So in view of the above, we create a recursive-descent parser which is
+tailored to \MIXAL. The techniques are quite well-known, so we shall not go into
+much depth here. It is very important to note, however, that the \MIXAL\ grammar,
+as stated informally in {\it TAOCP}, is not \ll1 because it is left-recursive.
+We shall restate it here in extended BNF form, transformed to \ll1, and the
+interested reader may refer to Appendix~B for the language's syntax diagrams:
+\def\is{\,\hbox{::=}\,}\def\PLUS{\hbox{|``+''|}}\def\MINUS{\hbox{|``-''|}}\def\STAR{\hbox{|``*''|}}
+\def\SLASH{\hbox{|``/''|}}\def\SSLASH{\hbox{|``//''|}}\def\COLON{\hbox{|``:''|}}
+\def\EQUALS{\hbox{|``=''|}}\def\COMMA{\hbox{|``,''|}}
+\def\LPAR{\hbox{|``(''|}}\def\RPAR{\hbox{|``)''|}}
+\def\EQU{\hbox{|``EQU''|}}\def\ORIG{\hbox{|``ORIG''|}}
+\def\CON{\hbox{|``CON''|}}\def\ALF{\hbox{|``ALF''|}}
+\def\END{\hbox{|``END''|}}
+$$
+\eqalignno{
+\<atom>\is&{\bf defined symbol}\mid{\bf number}\mid\STAR&(1)\cr
+\<binary op>\is&\PLUS\mid\MINUS\mid\STAR\mid\SLASH\mid\SSLASH\mid\COLON&(2)\cr
+\<expression>\is&[\PLUS\mid\MINUS]\,\<atom>\,\{\<binary op>\,\<atom>\}&(3)\cr
+\<a-part>\is&[\<expression>\mid\<literal>\mid{\bf future reference}]&(4)\cr
+\<i-part>\is&[\COMMA\,\<expression>]&(5)\cr
+\<f-part>\is&[\LPAR\,\<expression>\,\RPAR]&(6)\cr
+\<w-value>\is&\<expression>\,\<f-part>\,\{\COMMA\,\<expression>\,\<f-part>\}&(7)\cr
+\<literal>\is&\EQUALS\,\<w-value>\,\EQUALS&(8)\cr
+\<keyword-part>\is&\<keyword>\,\<a-part>\,\<i-part>\,\<f-part>&(10)\cr
+\<pseudo-part>\is&\ORIG\,\<w-value>\cr
+\mid\,&\EQU\,\<w-value>\cr
+\mid\,&\END\,\<w-value>\cr
+\mid\,&\CON\,\<w-value>\cr
+\mid\,&\ALF\,\<string>&(11)\cr
+\<opt-label>\is&[\<label>]&(12)\cr
+\<instr-part>\is&\<keyword-part>\mid\<instr-part>&(13)\cr
+\<instruction>\is&\<opt-label>\,\<instr-part>&(14)\cr
+\<program>\is&\<instruction>\,\{\<instruction>\}&(14)\cr
+}
+$$
+Note that in eqs.~(1) and~(4) the terminal symbols {\bf definedsymbol} and
+{\bf futurereference} are used. However, these are not tokens that the scanner can
+recognize, the reason being that the scanner has no knowledge of the symbol tables.
+The scanner only recognizes {\bf symbol}s, and it is up to the parser to determine
+whether a {\bf symbol} is a {\bf definedsymbol} or a {\bf futurereference}.
+\bigskip
+Let us now look at the grammar more rigorously. We use Noam Chomsky's definition
+of a formal grammar:
+
+\proclaim Definition 1. Formal Grammars.
+
+A formal grammar is an ordered quad-tuple $(N,\Sigma,P,S)$
+where:\smallskip
+\item{\bull} $N$ is a finite set of {\it nonterminal symbols};
+\item{\bull} $\Sigma$ is a finite set of {\it terminal symbols} such that
+$\Sigma\cap S=\emptyset$;
+\item{\bull} $P$ is a finite set of production rules, each rule having
+the form
+$$
+(\Sigma\cup N)^*N(\Sigma\cup N)^*\longrightarrow(\Sigma\cup N)^*
+$$ where * denotes the Kleene closure operator;
+\item{\bull} $S\in N$ is a distinguished symbol that denotes the start symbol.
+\smallskip\noindent
+The special sequence $(\Sigma\cup N)^*$ is called a {\it sentential form},
+and has two degenerate cases:\smallskip
+\item{\bull} It contains no elements: in this case it is denoted by the
+symbol $\epsilon$; or
+\item{\bull} It is of the form $\Sigma^*$: in this case it called a string.
+\smallskip\noindent
+It follows then that a grammar is simply a set of rules that govern how one
+may rewrite a string as the start symbol using productions and intermediate
+sentential forms, or vice-versa. The set of all strings that may be produced
+from the start symbol is called the {\it language} of the grammar.
+\medskip
+For a grammar to be \ll1, we must be able to determine the next production
+to use by looking at the next terminal symbol of the string being parsed
+and no further. This amounts to the requirement that given a production
+$$
+P\longrightarrow\xi_1\mid\xi_2\mid\cdots\mid\xi_\nu
+$$ the following identity must hold:
+$$
+{\rm first}(\xi_1)\cap{\rm first}(\xi_2)\cap\ldots\cap{\rm first}(\xi_\nu)=\emptyset\eqno{(15)}
+$$ where each $\xi_i$ is a sentential form and ${\rm first}(\xi)$ is a recursive
+function defined as
+$$
+{\rm first}(\xi)=\cases{\{\alpha\},&if $\xi$ is of the form $\alpha\xi'$ where $\alpha\in\Sigma$\cr
+{\rm first}(\alpha_1)\cap{\rm first}(\alpha_2)\cap\ldots\cap{\rm first}(\alpha_\nu),&if $\xi$ is of the form $S\xi'$ where $S\in N$\cr
+&and $S\longrightarrow\alpha_1\mid\alpha_2\mid\cdots\mid\alpha_\nu$\cr
+}
+$$
+
+Unfortunately, this turns out to be inadequate, for we must also consider
+productions of the form
+$$S\longrightarrow\alpha_1\mid\alpha_2\mid\cdots\mid\alpha_\nu\mid\epsilon$$
+where $\epsilon$ is the empty string. These pose problems in cases like
+$$
+\eqalign{S\longrightarrow\,&Ax\cr
+A\longrightarrow\,&x\mid\epsilon\cr
+}
+$$ whereby it is not clear whether to reduce a string `$x$' using production
+$x\longleftarrow A$, or the sequence of productions
+$x\longleftarrow\epsilon\,x\longleftarrow Ax\longleftarrow S$. This class of
+grammars, where one may be able to arrive at a terminal string from a start
+symbol $S$ using two or more distinct sequences of productions, are called
+{\it ambiguous grammars}.
+
+Therefore we pose one more restriction for a grammar to be \ll1: For every
+symbol $A\in N$ of our grammar, which may after a sequence of productions
+generate the empty string $\epsilon$, we require that
+$${\rm fist}(A)\cap{\rm follow}(A)=\emptyset$$
+where ${\rm follow}(A)$ is defined for every production of the form
+$S_i\longrightarrow\alpha_i A\eta_i$
+as $${\rm first}(\eta_1)\cup{\rm first}(\eta_2)\cup\ldots\cup{\rm first}(\eta_k)$$
+where $1\leq k\leq i$. If some $\eta_i$ may generate the empty string then
+${\rm follow}(\eta_i)$ must be included in the above union as well.
+
+This is where the syntax diagrams of Appendix~B pay off. The first rule
+amounts to the requirement that given a syntax diagram, at every fork
+the distinct branches to be pursued must start with a different symbol.
+The second rule states that for every graph that contains an empty branch,
+the first symbols that may follow such a graph must be disjoint than the
+first symbols of the graph itself. It is easy to verify that both rules
+apply in our grammar. Table~3.2 contains the `first' and `follow' symbols
+for all the graphs of the Appendix--except for ``Program'', which is
+identical to ``Instruction''.\bigskip
+$$
+\vbox{\tabskip 3em plus1em minus.5em
+\halign to .8\hsize{&#\hfil\cr
+\omit\hfil Graph $G$\hfil&\hfil${\rm first}(G)$\hfil&\hfil${\rm follow}(G)$\hfil\cr
+\noalign{\smallskip\hrule\medskip}
+Atom&{\bf number} {\bf defined symbol} |*|&|+ - * / // :|\cr
+Expression&|+ - *| {\bf defined symbol} {\bf number}&|( ) , =|\cr
+A-Part&|+ - * =| {\bf defined symbol}&|( ,|\cr
+&{\bf number} {\bf future reference}&\cr
+I-Part&|,|&|(|\cr
+F-Part&|(|&|,|\cr
+W-Value&|+ - *| {\bf defined symbol} {\bf number}&|=|\cr
+Instruction&{\bf label} {\bf keyword} {\bf equ} {\bf orig} {\bf con}\cr
+&{\bf alf} {\bf end}\cr
+}}
+$$
+\smallskip\centerline{\ninerm{\ninebf Table 3.2} {\ninett MIXAL} Syntax Analysis}
+\bigskip
+Taking into account the results of the above discussion, we create a |Parser|
+class which contains methods for each nonterminal. The method that parses
+a whole program is called |ParseProgram()|. If it fails to parse correctly, the
+|Errors| and/or |Warnings| collections are populated with information as to
+why things went wrong. The error messages consist of context information,
+{\it i.e.}~which parsing method was the one that failed to complete, the cartesian
+location of the error in the source program, found text {\it etc}.
+
+\subsection THE CODE GENERATOR.
+After the parsing process has completed successfully, we should somehow
+collect the parsed program, evaluate its meaning, and write it out to an
+appropriate form. There exist several options to do this. Perhaps the most
+popular is to generate an abstract syntax tree of the parsed program and visit
+each node of the tree to generate the appropriate instruction words. This method has
+its strengths. It lends itself to further syntax checking, code analysis,
+even tree transformation; a careful compiler writer may implement optimization
+algorithms based on tree structure; language translation is possible, between
+languages that share a common abstract syntax tree; and many other options.
+
+However, our goals are far from being this complex. Furthermore, a process
+utilizing abstract syntax trees is a two-pass process by definition: one pass 
+to construct the tree and a second pass to visit the nodes. \MIXAL\ has been 
+designed, according to its author's own words, to be a simple language to
+compile and a one-pass compiler should do the trick.
+
+All the semantic evaluation and code generation is done in the |Parser| class.
+Each one of the parsing methods returns a value, which denotes the semantic
+value of the corresponding nonterminal. For example, |Atom()| returns the
+numeric value of the matched symbol or number; the |ParseLine()| method returns
+a \MIX\ instruction word after it has finished parsing
+one line.
+
+An {\it assembly item} is the tuple $(l,w)$ where $l$ is the location
+in memory of the assembled instruction and $w$ is the instruction word.
+This is encapsulated in the |MemoryCell| class (which is definitely a
+bad case of misnaming). A {\it program assembly} is an unordered collection
+of assembly items. Its type is |List<MemoryCell>|.
+
+One important issue here is that of future references, literals
+and forward local symbols (all of which can be broadly categorized as
+future references). When the address part parser is asked to deal with a
+future reference, instead of returning the actual value of the address part,
+it returns |null| and stores the future reference. When the line parser
+attempts to assemble the instruction word, it either: (1)~sees a valid address
+part, in which case it proceeds with the assembly as normal; or (2)~sees a |null|
+address part, in which case it generates a ``promise'' to assemble the 
+instruction as soon as it knows the equivalent value of the future 
+reference---this is encapsulated in the |FutureReference| class. Future
+references can only be evaluated safely after all of the program has been
+parsed completely, because the \MIXAL\ specification states that a future 
+reference may never become a defined symbol, in which case it is assumed
+to be the constant 0.
+
+After the assembly of the rest of the program has completed, all the
+instructions containing future references are evaluated and appended at
+the end of the program assembly, taking into account the aforementioned
+rule about future references that are never defined.
+
+The ``|END|'' pseudo-instruction is special, because when the parser
+encounters it, it has to remember both the value of \loccount\ and the value
+of its operand. The former is the location at which any remaining
+undefined future references, as well as the literal constants, finally
+become defined, while the latter is required by the loading routine that
+will load the program for execution within a simulator.
+\medskip
+Following the creation of the program assembly, the compiler writes it
+out to either: (1)~a binary file, using the binary serialization utilities
+of the {\it .NET} framework; or (2)~a card deck (text) file, prepended
+with the loading routine from {\it TAOCP, sec. 1.3.1, ex. 26}.
+\endchapter
+
+Knowledge and insight on [the subject of compilers] will both enhance the
+general understanding of the art of programming in terms of high-level
+languages and will make it easier for a programmer to develop his own
+systems appropriate for specific purposes and areas of application.
+\author{NIKLAUS WIRTH}, {\sl Algorithms+Data Structures=Programs} (1976)
+
+\bigskip
+
+Woe to the author who always wants to teach!
+The secret of being a bore is to tell everything.
+\author{VOLTAIRE}, {\sl De la Nature de l'Homme} (1737)
+\eject

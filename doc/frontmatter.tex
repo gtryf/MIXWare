@@ -1,0 +1,94 @@
+\font\booktitlefont=cmssdc10 at 46pt
+\font\chapterfont=cmr10 at 28pt
+\def\clos#1{{\rm clos}\left(#1\right)}
+%
+\pageno=-1
+\font\auth=cmssdc10 scaled\magstep4
+\font\elevenbf=cmbx10 scaled\magstephalf
+\font\elevenit=cmti10 scaled\magstephalf
+\font\elevenrm=cmr10 scaled\magstephalf
+\titlepage
+\line{\booktitlefont\hfill The MIXWare}
+\smallskip
+\line{\booktitlefont \hfill Report and Manual}
+\vskip 1pc
+\baselineskip 13pt \elevenbf
+\halign to\hsize{#\hfil\tabskip 0pt plus 1fil&#\hfil\tabskip0pt\cr
+\kern4.4mm\auth GEORGE \kern-1pt TRYFONAS&
+ \tt george.tryfonas@gmail.com\cr}
+\vfill
+\eject
+
+% blank page
+\titlepage
+\null\vfill
+\eject
+
+% the introduction
+\titlepage
+\def\rhead{Introduction}
+\vbox to 8pc{
+\rightline{\titlefont Introduction}\vss}
+{\topskip 9pc
+\vskip-\parskip
+\tenpoint\noindent\hang\hangafter-2
+\smash{\lower12pt\hbox to 0pt{\hskip-\hangindent\chapterfont T\hfill}}\hskip-16pt
+{\sc HE} \MIX\ computer is an imaginary computer invented by Don 
+Knuth in the 1960s in order to present his exposition on computer algorithms.
+As Knuth puts it, the use of an imaginary computer and machine language helps
+avoid distracting the reader with the technicalities of one particular computer
+system, and the focus remains on truths that have always been---and will always
+be---valid, independent of any kind of technological evolution or current trends.
+
+There is no doubt about the truth of this statement. However, another kind of problem
+presents itself now. The \MIX\ computer is, well, $\ldots$imaginary. A reader cannot 
+experiment with it, or even have a go at solving the exercises by sitting in front 
+of a real computer terminal and writing programs. Nor even can one be certain
+that a particular solution to an exercise is correct, unless one checks the answer
+to the exercise, and even then, there may be many different solutions to a 
+problem, but the answers present only one. Unless of course the reader is 
+inclined to simulate \MIX\ in his or her head, or on a piece of paper. And these 
+may very well have been Knuth's intentions for his readers. After all, there is no
+doubt that the reader that will get the most out of the books is the one who is
+patient and dilligent enough to go through this kind of process. But it still is a 
+daunting task, often too frustrating, and for many people in many ways, a 
+distraction of the kind that Knuth wanted for his readers to avoid in the first place.
+
+Apparently, these issues have been prevailing for quite some time, since many people
+have developed simulators for Knuth's mythical machine over the years. The software
+you now have on your hands is another such attempt. But why bother making yet another
+simulator, you may ask? That is a good question. This present attempt in no way claims
+to solve any problems that previous implementations do not. As a matter of fact, it
+may have less bells and whistles than most. It might be less friendly, less complete,
+or even slower in its calculations. But it delivers, correctly. And what has actually
+been implemented, was done exactly by the book, literally speaking.
+
+The question remains, then. Why another \MIX\ simulator? Here is the answer:
+for the fun of it. And the learning experience. Writing such a piece of software,
+however trivial it may seem, presents a number of great challenges. It is an
+exercise in compiler design, input\slash output, data structures and more.
+A computer simulator is a platform which, by definition, provides its clients
+with {\it everything that the actual computer provides}, imaginary or not.
+Furthermore, it must be done in the best possible way given the programming
+tools.
+
+The MIXWare are written in Microsoft Visual C\# v3.5, which is a pure object-oriented
+language.
+
+\medskip
+\line{{\sl Athens, Greece}\hfil---G. T.}
+\line{\sl June 2009\hfil}
+
+}
+\endchapter
+
+'Tis the gift to be simple, 'tis the gift to be free.
+\author{JOSEPH BRACKETT}, {\sl Simple Gifts} (1848)
+
+\bigskip
+
+Everything should be made as simple as possible,
+but no simpler.
+\author{ALBERT EINSTEIN}, {\sl On the Method of %
+   Theoretical Physics} (1933)
+\eject

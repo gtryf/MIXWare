@@ -1,0 +1,216 @@
+\beginchapter Chapter 2. MIXASM---\\The MIX Assembler
+
+The assembler implements all the features of the \MIXAL\ language as
+detailed in~{\sl TAOCP, sec.~1.3.2}. See that book section for
+the definitive description of the language. The assembler
+follows the book faithfully, including the format of the
+|ALF| pseudo-operation. Appendix~A has a detailed treatment of
+the exact semantics of this particular assembler implementation.
+
+\subsection RUNNING THE ASSEMBLER.
+The assembler is invoked using the following syntax:
+\begintt
+MIXASM [arguments] [input-filename]
+\endtt
+where each \<argument> is of the form:
+\begindisplay
+|--long-arg:value|&or&|-short-arg:value|\cr
+\enddisplay
+where for each |--long-arg| there exist one or more |-short-arg|s
+that perform the equivalent function but are, well, shorter. The
+arguments' |value| part is, depending on the argument, either
+required, optional, or not applicable.
+Here's a list of the possible arguments and a description of
+what they do. The applicability of the |value| part is also
+discussed here.
+\def\drule{\noalign{\smallskip}}
+$$
+\tabskip 1em plus .5em minus .5em
+\halign to \hsize{#\hfil&#\hfil&\hfil#\cr
+{\sl Long Form}&{\sl Short Form}&{\sl Description}\cr
+\noalign{\vskip3pt\hrule\smallskip}
+|--output:filename|&|-o:filename|&redirects output to |filename|.\cr
+\drule
+|--symtab[:filename]|&|-s[:filename]|&produces the symbol table. If |filename|\cr
+&&is specified, the symbol table is written to that\cr
+&&file, otherwise it is sent to standard output.\cr
+\drule
+|--list-file:filename|&|-lf:filename|&produces a listing and writes it\cr
+&&to |filename| (see below).\cr
+\drule
+|--format:...|&|-f:...|&defines the output format. Can be either\cr
+&&|Card| or |Binary| (default is |Binary|, see below).\cr
+\drule
+|--append-deck:filename|&|-a:filename|&When the output format is |Card|, the\cr
+&&|filename| specified gets appended to\cr
+&&the output card deck.\cr
+\drule
+|--pretty-print|&|-pp|&pretty prints the symbol table and\slash or\cr
+&&the list file (if requested) for use with \TeX.\cr
+\drule
+|--version|&|-v|&display version information and exit.\cr
+\drule
+|--help|&|-h|\cr
+&|-?|&display a short help message and exit.\cr
+}
+$$
+If |input-filename| is not specified then input is done from the standard input.
+If the |--output| parameter is omitted then the compiler emits output to the
+standard output. The arguments are {\sl not\/} case-sensitive.
+Here's a bunch of examples:
+$$
+\tabskip 1em plus .5em minus .5em
+\halign to \hsize{#\hfil&\hfil#\cr
+{\sl Command*}&{\sl Comments}\cr
+\noalign{\vskip 3pt\hrule\medskip}
+|MIXASM -f:card primes.mixal|&compiles the file |primes.mixal| to\cr
+&a card deck and sends the output to the display\cr
+\drule
+|MIXASM -f:card primes.mixal|\cr
+| -lf:primes.tex -pp|&as above, but also pretty-prints the program listing\cr
+&for use with \TeX, and saves it to the file |primes.tex|.\cr
+\drule
+|MIXASM --output:primes.dump|\cr
+|  < primes.mixal|&compiles the file |primes.mixal| and\cr
+&writes the (binary) output to file |primes.dump|\cr
+\drule
+|MIXASM -f:card primes.mixal|\cr
+|  |\|| MIX --deck|&compiles the file |primes.mixal| as a card deck\cr
+&and starts non-interactive simulation\cr
+\noalign{\smallskip\hrule\smallskip}
+\multispan2\eightrm*These commands are, of course, all one-liners.\hfil\cr
+}
+$$
+The last couple of examples are worth particular mention. They bring to
+the light the joy of pipelining, which so many UNIX users have come to
+worship. Here's why the third example works: |MIXASM|, unless told otherwise,
+expects that the file to be assembled comes from the standard input. But
+here we redirect the standard input to the file |primes.mixal|. In the
+fourth example, we redirect |MIXASM|'s output to the input of |MIX|,
+the simulator. Remember that the |--deck| argument informs the simulator
+to interpret the input as a card deck.
+
+The following sections provide a description of the rest of |MIXASM|'s
+features (well, except for the dead obvious ones).
+
+\subsection OUTPUT FORMATS.
+|MIXASM| can produce two kinds of output, namely a binary memory dump
+or a card deck. Memory dumps are not human-readable and are meant only to be
+loaded and executed by |MIXSIM|, the simulator ({\sl cf.}~Chapter~1
+and~Appendix~A for techincal details). Card
+deck output, however, is in ASCII format and can be read by humans
+too---well, at least those that make sense of it.
+
+A card deck is a text file containing 80-column lines. Each line 
+represents a punched card and is read by \MIX's card reader. Each 
+\MIX\ program that has been compiled to a card deck adheres
+to the specification given in~{\it TAOCP, sec.~\hbox{1.3.1}, ex.~$26$}:
+The first two cards contain a loading routine which serves to load
+the rest of the program into the correct locations in memory and
+start execution. Note that programs that are compiled to cards
+must start at a memory location greater than~$100$, a restriction
+that does not apply when a program has been compiled to binary.
+This is due to the fact that these locations are occupied by the
+loading routine itself.
+
+When a \MIXAL\ program is compiled to a card deck, one may specify
+the |--append-deck| argument, which in effect appends extra cards to
+the output deck. For example, typing
+\begintt
+MIXASM perms.mixal -o:perms.deck -f:binary -a:perms-input.deck
+\endtt
+will produce the card deck |primes.deck| which will contain the
+compiled program plus the cards found in the |primes-input.deck|
+card deck (all these files can be found in the {\it Examples}
+directory of the MIXWare distribution). This latter deck contains
+sample input data for the permutations program. 
+
+There is actually a (good) reason behind this. If you use the
+simulator's |loaddeck| command to load the compiled program,
+the loader routine, program and all, will execute immediately,
+giving you no chance to set up the card reader with any input
+data (if there is any, of course). Therefore, the |--append-deck|
+argument gives you a chance to set things up beforehand.
+
+\subsection SYMBOL TABLES.
+The argument |--symtab| instructs |MIXASM| to produce a symbol table.
+If the |filename| parameter is given to the argument, then the symbol
+table is written to that file, otherwise it is sent to the standard
+output.
+The symbols in \MIX's assembly language are divided into three
+categories and so is the symbol table: (1)~the main symbols, which
+are |EQU| constants and instruction labels; (2)~the local symbols,
+i.e., labels like~|1H| and |9H| in the assembly source, and;
+(3)~literals, i.e., the address parts of instructions with the
+format |=23//1=|.
+
+Each segment of the symbol table is divided into three columns.
+The first column is the symbol name. The second one is the symbol's
+value as it gets stored in a \MIX\ word. The third column is the
+symbol's decimal value. Main symbols are copied verbatim as
+described. Local symbols and literals, however, receive special
+treatment.
+
+Local symbols get renamed according to the following rule: when
+a label of the form $n$|H| is encountered, where $n$ is a digit,
+then that label is renamed to 
+\|\kern-0.2112em$n$|-|$x_n$\kern-0.2112em\|, where $x_n$ is
+initially equal to~$1$. If the assembler encounters the label
+$n$|H| again, then it increases~$x_n$ by~$1$ and repeats the
+renaming process. For example: when the assembler first encounters
+a label |2H|, it sets $x_2$ equal to~$1$ and renames the label
+to \||2-1|\|. If the assembler encounters the label again further
+down the source code, it sets $x_2$ to~$2$ and renames the label
+to \||2-2|\|.
+
+Literals do not appear as symbols in the \MIXAL\ source. They appear as
+the address part of \MIXAL\ instructions, for example in the 
+instruction~|LD2 =3=|, the address~|=3=| is a literal constant. This
+has the effect of creating a constant with the value $3$ and creating
+an internal symbol whose value is equal to the address that constant
+is stored. |MIXASM| names that symbol as the literal---in the given
+example that symbol will be called~|=3=|. Note that this implies that
+only one constant is created, regardless of how many times the
+literal~|=3=| appears in the source code. There is, however, one
+exception to this rule, and that is when the literal contains the
+location counter, {\sl e.g.} |=*+3=|. See Appendix~A for more details.
+
+\subsection LIST FILES.
+|MIXASM| can produce list files similar to the program listings
+in~{\sl The Art of Computer Programming}: for each line of source,
+the listing contains the location in memory where that line is assembled, 
+the assembled word, the line number and the line itself.
+If the instruction
+is a \MIXAL\ pseudo-instruction, the first two parts are omitted.
+The program listing is followed by the symbol table as described
+in the previous section. A typical \MIX\ instruction is stored in 
+a \MIX\ word as follows:
+$$
+\global\usehruletrue\mixinst$\pm$.AA.I.F.C.
+$$ where |AA| is the address, ranging from $0$ to~$3999$, |I| is
+the index, |F| is the field and |C| is the instruction's opcode. For
+more information on how these fields are used see~{\it TAOCP, sec.~\hbox{1.3.1}}.
+
+The list file that |MIXASM| produces is stored in a text file that's
+specified as an argument to the |--list-file| parameter. If the 
+|--pretty-print| option is given to the assembler, the list file is
+written in \TeX{} format instead. You may refer to Appendix~A for a full
+listing of a short example program, to examine what such listings look like when
+they are typeset by \TeX.
+\endchapter
+
+When someone says: `I want a programming language in which
+I need only say what I wish done', give him a lollipop.
+\author{ALAN PERLIS}, {\sl Software Metrics} (1981)
+
+\bigskip
+
+Trying to outsmart a compiler defeats much of the purpose of using one.
+\author{KERNIGHAN \& PLAUGER}, {\sl The Elements of Programming Style} (1978)
+
+\bigskip
+
+If you can't do it in Fortran, do it in assembly language. 
+If you can't do it in assembly language, it isn't worth doing.
+\author{ED POST}, {\sl Real Programmers Don't Use Pascal} (1983)
+\eject

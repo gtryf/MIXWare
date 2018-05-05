@@ -1,0 +1,196 @@
+\beginchapter Chapter 3. Simulator Implementation
+
+We shall inspect, in this and the next chapter, the various details behind the
+two principal programs, |MIXASM| and |MIX|. These chapters are concerned a bit 
+more with the hairy implementation details and a good working knowledge of 
+object oriented programming is assumed. The actual implementation language is
+C\#, but we shall avoid getting into actual programming details. However, will
+will talk about classes, structures, methods and inheritance, and the reader is
+assumed to know what each of these constructs means.
+
+We start our discussion with the simulator, which is probably the simplest
+of the two programs, therefore easier to grasp.
+\medskip
+The simulator closely follows the specification given in {\it TAOCP sec. 1.3.1.}
+Everything described in that section has been implemented in its entirety.
+Perhaps the most challenging task of the implementation process is the fact
+that \MIX\ is an archaic design. Many of its components do not exist today.
+Certainly there are no card readers, card punches or tape drives. Printers
+have stopped being line-oriented. Byte size has been standardized and it
+certainly isn't six bits. Computers generally make no distinction between
+$+0$ and $-0$.
+
+Object oriented design helps hide such minor setbacks. We recognize the
+abstractions behind the computer specification and create classes to encapsulate
+them. For example, we know that a word represents a number, of any radix,
+whose minimum and maximum limits are known, and on which we may perform simple
+arithmetic. We are not concerned with how many bits represent one word. This is a
+minor implementation detail which is kept hidden within the encapsulating class.
+
+The same goes with the other important parts of the \MIX\ design.
+Breaking a \MIX\ computer to its abstract components, we are left with the
+following important classes:
+$$
+\vbox{\tabskip 3em plus1em minus.5em
+\halign to \hsize{&#\hfil\cr
+\omit\hfil\MIX\ Abstraction\hfil&\omit\hfil Encapsulating\hfil&\omit\hfil Remarks\hfil\cr
+&\omit\hfil Class\hfil\cr
+\noalign{\smallskip\hrule\medskip}
+Word&|MIXWord|&A word of memory: five bytes and a sign\cr
+Instruction&|MIXInstruction|&An abstract \MIX\ instruction, like |LDA|.\cr
+&&Consists of an |Execute()| method,\cr
+&&which when overridden performs the\cr
+&&actual instruction.\cr
+Device&|MIXDevice|&An abstract \MIX\ device.\cr
+&&Descendants are the concrete \MIX\ devices,\cr
+&&such as disk drives, the line printer, {\it etc.}\cr
+\MIX&|MIXMachine|&The actual \MIX\ computer.\cr
+&&Contains properties such as |Memory|, a set\cr
+&&of register properties, the device array {\it etc.}\cr
+}}
+$$
+\smallskip\centerline{\ninerm{\ninebf Table 3.1} \MIX\ Description}\smallskip
+Figure~3.1 shows the overall structure of the \MIX\ simulator design without many
+details. The diagram drives home the fact that the |MIXMachine| class is the one
+class that brings together the various parts that make up \MIX.
+
+\epsfxsize=.9\hsize
+\centerline{\epsfbox{eps/machine.eps}}
+\smallskip\centerline{\ninerm{\ninebf Figure 3.1} \MIX\ Simulator class diagram}
+\smallskip\noindent
+We now shall discuss the various parts of the \MIX\ architecture as evidenced
+in the class diagram in a bit more detail.
+\subsection WORDS.
+\MIX\ words are used throughout the specification of the \MIX\ machine:
+\MIX's memory is an array of \MIX\ words; the \MIX\ registers hold values that
+fit into \MIX\ words (in fact, the index registers, rI1--rI6, as well as rJ,
+are shorter, but regarding them as such is a good simplification); each \MIX\
+instruction is encoded as a word; device I/O is done by sending and receiving
+words to and from the devices. It is a ubiquitous abstraction.
+
+It follows that such an ever-present abstraction will make very frequent
+appearances in any kind of implementation. To this end, we go at great length
+to define the |MIXWord| class in such a way that it may be used as naturally as 
+the standard integral types of the implementation language. The |MIXWord| class 
+can be constructed from the language's existing integral values (|int| or |byte|) 
+and can be cast back to them. In the case of |int|, an explicit cast is needed 
+because the range of a 32-bit integer is greater than that of the 30-bit \MIX\
+word. In addition, we overload the standard C\# arithmetic and relational operators
+in such a way that we may write
+\begintt
+if (w1 > w2)
+    w1 += 100;
+\endtt
+Note that because
+of our type-coercion operators we are allowed to add a |byte| (such as 100)
+to a |MIXWord|.
+
+An important characteristic of a \MIX\ word is that we can examine the value of,
+and assign to, byte slices of it. For example, we can assign the value `1000'
+to bytes 2--3 of a word, leaving the rest of the word the same. Or, we can
+read the value of bytes 2--4, ignoring the other bytes. These byte slices
+are called {\it fields}.
+
+Because fields are contiguous, it is simple to encapsulate them in the |MIXWord|
+class by overloading the |this[]| property. We provide two overloads:\smallskip
+\item{1.}|public byte this[byte b]| assigns to or reads the value of a single
+byte of the |MIXWord|; and
+\item{2.}|public int this[byte l, byte r]| assigns to or reads the value of
+a field of the |MIXWord|, defined by the range $l$--$r$, where $l$ is the most
+significant byte of the field and $r$ is the least significant byte.
+\smallskip\noindent
+therefore providing the means to write code such as:
+\begintt
+MIXWord w = new MIXWord(5000);
+w[2,3] = 1000;
+int a = w[1,4];
+\endtt
+In this way we make the implementation of the \MIX\ instruction set significantly
+easier, because the effective address of most instructions takes a field
+specification into account.
+
+Finally, we override the |ToString()| method to return a convenient textual
+representation of the word, useful in program listings and in memory dumps.
+
+\subsection INSTRUCTIONS.
+A \MIX\ instruction is encoded in a word according to the conventions specified
+in {\it TAOCP sec.~1.3.1}. The \MIX\ central processing unit decodes the word
+and, according to the C- and F-fields of the instruction word (see also the
+section on list files in the previous chapter), performs a specified
+operation using |CONTENTS(M)|, the latter defined as
+$$ {\rm CONTENTS}(M)\equiv A(F)+{\rm rI}(I) $$
+where $A$, $F$ and $I$ are the A-, F- and I- fields of the instruction word
+respectively.
+
+To encapsulate this abstraction in the |MIXInstruction| class there are two
+distinct paths we may follow. We can either: (1)~create an abstract superclass
+and inherit it 157 times, once for each instruction; or (2)~create a concrete
+class and instantiate it with a different method delegate 157 times, again once
+for each instruction. The first method encapsulates the abstraction at the class
+level while the second one at the instance level.
+
+There are no significant advantages of one method over the other, apart from
+the fact that the first one leads to an explosion of subclasses, each one of
+which must be named differently, while the second method can be implemented
+using anonymous delegates ($\lambda$-expressions). We chose the second method
+for this simple reason.
+
+\subsection DEVICES.
+As required by the specification, the \MIX\ computer features asynchronous
+I/O. All devices communicate with the computer by sending and receiving
+blocks of data, either as full \MIX\ words (in the case of disks and magnetic
+tape) or in character mode (for the other devices). In character mode the
+sign of the \MIX\ word is ignored and bytes 1--4 are interpreted as a characters
+from the \MIX\ character set. Block size varies from device type to device type.
+
+This abstraction is encapsulated in the |MIXDevice| abstract class and its
+subclasses, which are illustrated in Figure~3.2 below:
+
+\epsfxsize=.9\hsize
+\centerline{\epsfbox{eps/devices.eps}}
+\smallskip\centerline{\ninerm{\ninebf Figure 3.2} \MIX\ Devices class diagram}
+\smallskip\noindent
+The |MIXDevice| abstract class contains the core interface to a \MIX\ device.
+Its important methods are |In()|, |Out()| and |IOC()|. These methods
+simply call the |InProc()|, |OutProc()| and |IOCProc()| methods respectively
+in a new thread of execution---this provides the asynchronous device operation
+required by the specification.
+
+Concrete children of the |MIXDevice| class override these last three methods
+to provide the functionality of the implemented device. Some devices are meant
+only for input, others only for output, in which case the |InProc()| or the
+|OutProc()| methods respectively have null implementations.
+
+The |Ready| property is the device's ``status indicator''. It is cleared
+by the |InProc()|, |OutProc()| and |IOCProc()| methods whenever they begin
+execution, and reset when they end. It is important that the body of these
+methods is written inside a critical region to provide the appropriate
+synchronization. C\#'s |lock| primitive is used for this purpose.
+
+Devices are actually implemented using streams as backing store. Upon instantiation
+of a |MIXDevice| subclass, we specify a |Stream| instance for such use,
+but it's possible to redirect a device by simply changing the underlying
+stream, to either a |MemoryStream|, the standard input/output streams or
+a |FileStream|---or |null| if the device is unbacked, making the device behave
+as if it did not exist at all. The |Redirect()| method of the |MIXDevice| class
+is provided exactly for this purpose.
+
+\subsection THE MACHINE.
+Everything is put together in the |MIXMachine| class. Details such as the
+\MIX\ character map, the register set (a set of |MIXWord| properties), the
+overflow/comparison indicators, the memory (an array of |MIXWord|s), the
+device array and the instruction set are all implemented as properties
+in this class.
+
+A |MIXMachine| instance can load a binary memory dump or a card deck as they
+are output from the assembler. There exist methods to execute one instruction
+or to execute instructions sequentially until an |HLT| instruction is reached.
+Execution is governed by a special property called |PC| (for |P|rogram |C|ounter)
+which holds the memory location of the next instruction to be executed.
+\endchapter
+
+One Ring to rule them all, One Ring to find them,
+One Ring to bring them all and in the darkness bind them
+In the Land of Mordor where the Shadows lie.
+\author{J. R. R. TOLKIEN}, {\sl The Fellowship of the Ring} (1954)
+\eject
