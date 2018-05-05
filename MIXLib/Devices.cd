@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="MIXLib.MIXDevice">
+    <Position X="4.5" Y="2" Width="2" />
+    <Members>
+      <Method Name="MIXDevice" Hidden="true" />
+      <Method Name="MIXWordToString" Hidden="true" />
+      <Field Name="store" Hidden="true" />
+      <Property Name="Store" Hidden="true" />
+      <Method Name="StoreChanged" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>YEAAAAAAAGAAAAFEAAAAAAQAgAAAAAABAAAAASAIACg=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.LinePrinter" Collapsed="true">
+    <Position X="6.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.PaperTape" Collapsed="true">
+    <Position X="8.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.Tape" Collapsed="true">
+    <Position X="2.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.Disk" Collapsed="true">
+    <Position X="7.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.CardPunch" Collapsed="true">
+    <Position X="2.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAQAAAgAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.CardReader" Collapsed="true">
+    <Position X="0.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAgAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MIXLib.Terminal" Collapsed="true">
+    <Position X="4.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAACAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Devices.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

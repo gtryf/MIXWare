@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIX", "MIX\MIX.csproj", "{8FC52E82-584C-4247-890E-EBEF3C045A74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIXLib", "MIXLib\MIXLib.csproj", "{5A13219C-54BF-4368-9379-3FD5BDC65C76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIXAsm", "MIXAsm\MIXAsm.csproj", "{EE59ABE9-5D6B-4AF3-B4EE-CBDAC9754D64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8FC52E82-584C-4247-890E-EBEF3C045A74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FC52E82-584C-4247-890E-EBEF3C045A74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FC52E82-584C-4247-890E-EBEF3C045A74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FC52E82-584C-4247-890E-EBEF3C045A74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A13219C-54BF-4368-9379-3FD5BDC65C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A13219C-54BF-4368-9379-3FD5BDC65C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A13219C-54BF-4368-9379-3FD5BDC65C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A13219C-54BF-4368-9379-3FD5BDC65C76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE59ABE9-5D6B-4AF3-B4EE-CBDAC9754D64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE59ABE9-5D6B-4AF3-B4EE-CBDAC9754D64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE59ABE9-5D6B-4AF3-B4EE-CBDAC9754D64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE59ABE9-5D6B-4AF3-B4EE-CBDAC9754D64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

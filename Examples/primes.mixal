@@ -1,0 +1,52 @@
+* Table of primes (TAOCP p. 148, Program P)
+*
+L       EQU    500           # of primes to find
+OUTDEV  EQU    18            Unit # of printer
+PRIME   EQU    -1            Memory area for table of primes
+BUF0    EQU    2000          Memory area for BUFFER[0]
+BUF1    EQU    BUF0+25       Memory area for BUFFER[1]
+        ORIG   3000
+START   IOC    0(OUTDEV)     Skip to new page
+        LD1    =1-L=         P1. Start table.  J <- 1.
+        LD2    =3=               N <- 3.
+2H      INC1   1             P2. N is prime.  J <- J + 1.
+        ST2    PRIME+L,1         PRIME[J] <- N.
+        J1Z    2F            P3. 500 found?
+4H      INC2   2             P4. Advance N.
+        ENT3   2             P5. K <- 2.
+6H      ENTA   0             P6. Does PRIME[K] divide N?
+        ENTX   0,2
+        DIV    PRIME,3
+        JXZ    4B                R = 0?
+        CMPA   PRIME,3       P7. PRIME[K] large?
+        INC3   1             P8. Advance K.
+        JG     6B                Jump if Q > PRIME[K].
+        JMP    2B                Otherwise N is prime.
+2H      OUT    TITLE(OUTDEV) P9. Print title.
+        ENT4   BUF1+10           B <- 1.
+        ENT5   -50               M <- 0.
+2H      INC5   L+1               Advance M.
+4H      LDA    PRIME,5       P10. Set up line. (Right to left)
+        CHAR
+        STX    0,4(1:4)
+        DEC4   1
+        DEC5   50            (rI5 goes down by 50 until nonpositive)
+        J5P    4B
+        OUT    0,4(OUTDEV)   P11. Print line.
+        LD4    24,4              Switch buffers.
+        J5N    2B                If rI5 = 0, we're done.
+        HLT
+* Initial contents.
+        ORIG   PRIME+1
+        CON    2                 First prime is 2.
+        ORIG   BUF0-5
+TITLE   ALF FIRST
+        ALF   FIVE
+        ALF   HUND
+        ALF RED P
+        ALF RIMES
+        ORIG   BUF0+24           Each buffer points to the other.
+        CON    BUF1+10
+        ORIG   BUF1+24
+        CON    BUF0+10
+        END    START             End of routine.
