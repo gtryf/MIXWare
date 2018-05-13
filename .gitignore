@@ -304,3 +304,6 @@ doc/*.log
 doc/*.pdf
 doc/*.dvi
 doc/*.aux
+
+.vscode
+
