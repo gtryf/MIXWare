@@ -15,13 +15,9 @@ namespace MIXLib
         }
 
         public void Execute(MIXWord address, byte index, byte field)
-        {
-            executionProc(address, index, field);
-        }
+		    => executionProc(address, index, field);
 
         public void Execute(MIXWord address, byte index, byte left, byte right)
-        {
-            executionProc(address, index, (byte)(left * 8 + right));
-        }
+		    => executionProc(address, index, (byte)(left * 8 + right));
     }
 }

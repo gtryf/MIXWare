@@ -67,30 +67,18 @@ namespace MIXLib.Parser
 
         private IList<ErrorInfo> errors;
         private IList<ErrorInfo> warnings;
-        private List<MemoryCell> assembly;
-        private List<FutureReference> futureRefs;
+        private IList<MemoryCell> assembly;
+		private IList<FutureReference> futureRefs;
 
         private readonly TextReader reader;
 
-        public IEnumerable<MemoryCell> Assembly
-        {
-            get { return assembly.AsEnumerable(); }
-        }
+		public IEnumerable<MemoryCell> Assembly => assembly.AsEnumerable();
 
-        public Dictionary<string, MIXWord> SymbolTable
-        {
-            get { return symbolTable; }
-        }
+		public Dictionary<string, MIXWord> SymbolTable => symbolTable;
 
-        public IEnumerable<ErrorInfo> Errors
-        {
-            get { return errors.AsEnumerable(); }
-        }
+		public IEnumerable<ErrorInfo> Errors => errors.AsEnumerable();
 
-        public IEnumerable<ErrorInfo> Warnings
-        {
-            get { return warnings.AsEnumerable(); }
-        }
+		public IEnumerable<ErrorInfo> Warnings => warnings.AsEnumerable();
 
         public int LineNumber { get; set; }
 
@@ -237,9 +225,7 @@ namespace MIXLib.Parser
         }
 
         private bool IsLocal(string s)
-        {
-            return s.Length == 2 && char.IsDigit(s[0]) && s[1] == 'B';
-        }
+		    => s.Length == 2 && char.IsDigit(s[0]) && s[1] == 'B';
 
         private string FRefSymb;
         public MIXWord Address()
@@ -491,7 +477,7 @@ namespace MIXLib.Parser
             {
                 if (!symbolTable.ContainsKey(fr.Symbol))
                 {
-                    if (fr.Symbol.StartsWith("="))
+                    if (fr.Symbol.StartsWith("=", StringComparison.InvariantCultureIgnoreCase))
                     {
                         int litVal = int.Parse(fr.Symbol.Substring(1, fr.Symbol.Length - 2));
                         assembly.Add(new MemoryCell { Location = insertionPoint, SourceLocation = 0, Contents = new MIXWord(litVal) });

@@ -32,10 +32,7 @@ namespace MIXAsm
         private string symbTabFile;
         public string SymbolTableFile
         {
-            get
-            {
-                return symbTabFile;
-            }
+			get => symbTabFile;
             set
             {
                 if (!string.IsNullOrEmpty(value))

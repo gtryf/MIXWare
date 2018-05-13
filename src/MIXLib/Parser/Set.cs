@@ -9,8 +9,8 @@ namespace MIXLib.Parser
         #region "Data"
 
         bool flagsEnum;
-        System.Collections.BitArray members;
-        System.Collections.Generic.Dictionary<TEnum, int> mapMember2Index;
+        readonly System.Collections.BitArray members;
+        Dictionary<TEnum, int> mapMember2Index;
         #endregion
 
         #region "ctors"
@@ -80,32 +80,17 @@ namespace MIXLib.Parser
             return this;
         }
 
-        public bool Contains(TEnum member)
-        {
-            return members[mapMember2Index[member]];
-        }
+		public bool Contains(TEnum member) => members[mapMember2Index[member]];
 
-        public int Cardinality
-        {
-            get
-            {
-                return members.Length;
-            }
-        }
+		public int Cardinality => members.Length;
 
         #endregion
 
         #region "Overrides"
 
-        public override bool Equals(object obj)
-        {
-            return this == (Set<TEnum>)obj;
-        }
+		public override bool Equals(object obj) => this == (Set<TEnum>)obj;
 
-        public override int GetHashCode()
-        {
-            return members.GetHashCode();
-        }
+		public override int GetHashCode() => members.GetHashCode();
 
         public override string ToString()
         {
@@ -158,9 +143,7 @@ namespace MIXLib.Parser
         }
 
         public static bool operator !=(Set<TEnum> left, Set<TEnum> right)
-        {
-            return !(left == right);
-        }
+		    => !(left == right);
 
         #endregion
 

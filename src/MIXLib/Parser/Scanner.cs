@@ -107,7 +107,7 @@ namespace MIXLib.Parser
                                 if (accum.ToString().Length > 10)
                                 {
                                     throw new ScannerException(lineNum, col, 
-                                        string.Format("Symbol '{0}' is too long", accum.ToString()));
+									                           $"Symbol '{accum}' is too long");
                                 }
                                 yield return new Token { ColumnNumber = col, Text = accum.ToString(), Type = TokenType.LABEL };
                                 col = endCol;
@@ -135,7 +135,7 @@ namespace MIXLib.Parser
                                     yield return new Token { ColumnNumber = col, Text = tokText, Type = TokenType.END };
                                 else
                                     throw new ScannerException(lineNum, col, 
-                                        string.Format("Expected: KEYWORD or PSEUDO, Found: '{0}'", tokText));
+									                           $"Expected: KEYWORD or PSEUDO, Found: '{tokText}'");
 
                                 col = endCol;
                                 break;
@@ -147,7 +147,7 @@ namespace MIXLib.Parser
                                     if (accum.ToString().Length > 10)
                                     {
                                         throw new ScannerException(lineNum, col,
-                                            string.Format("Number '{0}' is too long", accum.ToString()));
+										                           $"Number '{accum}' is too long");
                                     }
                                     yield return new Token { ColumnNumber = col, Text = accum.ToString(), Type = TokenType.NUMBER };
                                 }
@@ -156,7 +156,7 @@ namespace MIXLib.Parser
                                     if (accum.ToString().Length > 10)
                                     {
                                         throw new ScannerException(lineNum, col,
-                                            string.Format("Symbol '{0}' is too long", accum.ToString()));
+										                           $"Symbol '{accum}' is too long");
                                     }
                                     yield return new Token { ColumnNumber = col, Text = accum.ToString(), Type = TokenType.SYMBOL };
                                 }

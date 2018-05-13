@@ -18,7 +18,7 @@ namespace MIXLib
         /// </summary>
         protected Stream Store 
         {
-            get { return store; }
+			get => store;
             set 
             {
                 lock (this)

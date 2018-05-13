@@ -7,9 +7,7 @@ namespace MIXLib.Util
     public static class CommandLineHelper
     {
         public static Dictionary<string, string> SplitCommandLine(string commandLine, Dictionary<string, string> aliases)
-        {
-            return SplitCommandLine(commandLine, aliases, false);
-        }
+		    => SplitCommandLine(commandLine, aliases, false);
 
         public static Dictionary<string, string> SplitCommandLine(string commandLine, Dictionary<string, string> aliases, bool noCase)
         {

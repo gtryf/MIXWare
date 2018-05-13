@@ -110,10 +110,7 @@ namespace MIXLib
         #region Managing the whole of the value
         public int UnsignedValue
         {
-            get
-            {
-                return data & Convert.ToInt32(ALL_ONE, 2);
-            }
+			get => data & Convert.ToInt32(ALL_ONE, 2);
             set
             {
                 if (value > Convert.ToInt32(ALL_ONE, 2))
@@ -126,13 +123,7 @@ namespace MIXLib
 
         public int Value
         {
-            get
-            {
-                if ((data & SIGN_POS) == SIGN_POS)
-                    return -UnsignedValue;
-                else
-                    return UnsignedValue;
-            }
+			get => (data & SIGN_POS) == SIGN_POS ? -UnsignedValue : UnsignedValue;
             set
             {
                 this.UnsignedValue = Math.Abs(value);
@@ -337,63 +328,35 @@ namespace MIXLib
 
         #region Conversions
 
-        public static implicit operator int(MIXWord w)
-        {
-            return w.Value;
-        }
+		public static implicit operator int(MIXWord w) => w.Value;
 
-        public static explicit operator byte(MIXWord w)
-        {
-            return (byte)w.Value;
-        }
+		public static explicit operator byte(MIXWord w) => (byte)w.Value;
 
-        public static implicit operator MIXWord(byte b)
-        {
-            return new MIXWord(b);
-        }
+		public static implicit operator MIXWord(byte b) => new MIXWord(b);
 
-        public static explicit operator MIXWord(int i)
-        {
-            return new MIXWord((byte)i);
-        }
+		public static explicit operator MIXWord(int i) => new MIXWord((byte)i);
 
         #endregion
 
         #region Unary Operators
 
-        public static MIXWord operator +(MIXWord w)
-        {
-            return new MIXWord(w);
-        }
+		public static MIXWord operator +(MIXWord w) => new MIXWord(w);
 
-        public static MIXWord operator -(MIXWord w)
-        {
-            return new MIXWord(-w.Value);
-        }
+		public static MIXWord operator -(MIXWord w) => new MIXWord(-w.Value);
 
-        public static MIXWord operator ++(MIXWord w)
-        {
-            return new MIXWord(w + 1);
-        }
+		public static MIXWord operator ++(MIXWord w) => new MIXWord(w + 1);
 
-        public static MIXWord operator --(MIXWord w)
-        {
-            return new MIXWord(w - 1);
-        }
+		public static MIXWord operator --(MIXWord w) => new MIXWord(w - 1);
 
         #endregion
 
         #region Binary Operators
 
         public static MIXWord operator +(MIXWord w1, MIXWord w2)
-        {
-            return new MIXWord(w1.Value + w2.Value);
-        }
+		    => new MIXWord(w1.Value + w2.Value);
 
         public static MIXWord operator -(MIXWord w1, MIXWord w2)
-        {
-            return new MIXWord(w1.Value - w2.Value);
-        }
+		    => new MIXWord(w1.Value - w2.Value);
 
         #endregion
 
@@ -420,24 +383,16 @@ namespace MIXLib
         }
 
         public static bool operator <(MIXWord w1, MIXWord w2)
-        {
-            return w1.Value < w2.Value;
-        }
+		    => w1.Value < w2.Value;
 
         public static bool operator >(MIXWord w1, MIXWord w2)
-        {
-            return w1.Value > w2.Value;
-        }
+		    => w1.Value > w2.Value;
 
         public static bool operator <=(MIXWord w1, MIXWord w2)
-        {
-            return w1.Value <= w2.Value;
-        }
+		    => w1.Value <= w2.Value;
 
         public static bool operator >=(MIXWord w1, MIXWord w2)
-        {
-            return w1.Value >= w2.Value;
-        }
+		    => w1.Value >= w2.Value;
 
         #endregion
 
@@ -453,10 +408,7 @@ namespace MIXLib
             return this.Value == other.Value;
         }
 
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode();
-        }
+		public override int GetHashCode() => Value.GetHashCode();
 
         public override string ToString()
         {

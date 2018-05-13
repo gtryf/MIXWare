@@ -24,9 +24,7 @@ namespace MIXAsm
         public string EmptyLine { get { return Environment.NewLine; } }
 
         public string FormatHeading(string headingText)
-        {
-            return "============== " + headingText + " ==============";
-        }
+		    => "============== " + headingText + " ==============";
 
         public string FormatInstruction(int location, MIXWord instruction, int lineNo, string line)
         {
@@ -39,14 +37,10 @@ namespace MIXAsm
         }
 
         public string FormatPseudo(int lineNo, string line)
-        {
-            return new string(' ', 25) + lineNo.ToString().PadLeft(4) + " " + line;
-        }
+		    => new string(' ', 25) + lineNo.ToString().PadLeft(4) + " " + line;
 
         public string FormatSymbol(string name, MIXWord value)
-        {
-            return name + "\t" + value + " = " + value.Value;
-        }
+		    => name + "\t" + value + " = " + value.Value;
     }
 
     public class TeXPrinter
@@ -256,18 +250,11 @@ namespace MIXAsm
             return strLine;
         }
 
-        public string FormatPseudo(int lineNo, string line)
-        {
-            string strLine = string.Format("\\omit\\global\\usehruletrue&\\omit&{0}&|{1}|\\cr",
-                lineNo, line);
-
-            return strLine;
-        }
+		public string FormatPseudo(int lineNo, string line)
+		    => $"\\omit\\global\\usehruletrue&\\omit&{lineNo}&|{line}|\\cr";
 
         public string FormatSymbol(string name, MIXWord value)
-        {
-            return string.Format("{0}&\\mixword${1}$.{2}.{3}.{4}.{5}.{6}.&=&{7}\\cr", name.Replace("|", @"\|"),
+		    => string.Format("{0}&\\mixword${1}$.{2}.{3}.{4}.{5}.{6}.&=&{7}\\cr", name.Replace("|", @"\|"),
                 value[0] == 1 ? "-" : "+", value[1], value[2], value[3], value[4], value[5], value.Value);
-        }
     }
 }
