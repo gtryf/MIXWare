@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using MIXUI.Helpers;
 using MIXUI.Services;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace MIXUI
 {
@@ -56,6 +60,32 @@ namespace MIXUI
 
             // configure DI for application services
             services.AddScoped<IUserService, UserService>();
+
+            // Register the Swagger generator, defining 1 or more Swagger documents
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Version = "v1",
+                    Title = "MIXWare API",
+                    Description = "Web API for the MIX Simulator",
+                    Contact = new Contact
+                    {
+                        Name = "George Tryfonas",
+                        Email = "george.tryfonas@gmail.com"
+                    },
+                    License = new License
+                    {
+                        Name = "MIT",
+                        Url = "https://opensource.org/licenses/MIT"
+                    }
+                });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,6 +106,16 @@ namespace MIXUI
             }
 
             app.UseStaticFiles();
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "MIXWare API V1");
+            });
 
             app.UseAuthentication();
             app.UseMvc(routes =>
