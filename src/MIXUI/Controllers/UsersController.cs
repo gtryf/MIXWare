@@ -41,7 +41,7 @@ namespace MIXUI.Controllers
         /// 
         ///     POST /users
         ///     {
-        ///         "userName": "user",
+        ///         "username": "user",
         ///         "password": "p@ssw0rd"
         ///     }
         /// </remarks>
@@ -53,7 +53,7 @@ namespace MIXUI.Controllers
         [HttpPost("authenticate")]
         [ProducesResponseType(200)]
         [ProducesResponseType(401)]
-        public IActionResult Authenticate([FromBody] PostUserDto credentials)
+        public IActionResult Authenticate([FromBody] LoginDto credentials)
         {
             var user = _userService.Authenticate(credentials.Username, credentials.Password);
 
@@ -91,7 +91,7 @@ namespace MIXUI.Controllers
         /// 
         ///     POST /users
         ///     {
-        ///         "userName": "user",
+        ///         "username": "user",
         ///         "password": "p@ssw0rd"
         ///     }
         /// </remarks>
@@ -103,7 +103,7 @@ namespace MIXUI.Controllers
         [HttpPost]
         [ProducesResponseType(201)]
         [ProducesResponseType(400)]
-        public IActionResult Register([FromBody] PostUserDto userInfo)
+        public IActionResult Register([FromBody] RegisterDto userInfo)
         {
             // map dto to entity
             var user = _mapper.Map<User>(userInfo);
@@ -112,7 +112,7 @@ namespace MIXUI.Controllers
             {
                 // save 
                 var newUser = _userService.Create(user, userInfo.Password);
-                return CreatedAtRoute("GetUser", new { id = newUser.Id }, _mapper.Map<GetUserDto>(user));
+                return CreatedAtRoute("GetUser", new { id = newUser.Id }, _mapper.Map<UserDto>(user));
             }
             catch (ApiException ex)
             {
@@ -128,14 +128,14 @@ namespace MIXUI.Controllers
         /// <returns>A list of user objects</returns>
         /// <response code="200">Return all users</response>
         /// <response code="401">If the supplied token does not have administrative claims</response>
-        [ProducesResponseType(200, Type = typeof(IList<GetUserDto>))]
+        [ProducesResponseType(200, Type = typeof(IList<UserDto>))]
         [ProducesResponseType(401)]
         [HttpGet]
         public IActionResult GetAll()
         {
             // TODO: Check authorization
             var users = _userService.GetAll();
-            var userDtos = _mapper.Map<IList<GetUserDto>>(users);
+            var userDtos = _mapper.Map<IList<UserDto>>(users);
             return Ok(userDtos);
         }
 
@@ -149,14 +149,14 @@ namespace MIXUI.Controllers
         /// <returns>The user's information</returns>
         /// <response code="200">If the call is successful</response>
         /// <response code="401">If the calling token does not have access</response>
-        [ProducesResponseType(200, Type = typeof(GetUserDto))]
+        [ProducesResponseType(200, Type = typeof(UserDto))]
         [ProducesResponseType(401)]
         [HttpGet("{id}", Name = "GetUser")]
         public IActionResult GetById(int id)
         {
             // TODO: Check authorization
             var user = _userService.GetById(id);
-            var userDto = _mapper.Map<GetUserDto>(user);
+            var userDto = _mapper.Map<UserDto>(user);
             return Ok(userDto);
         }
 
@@ -175,7 +175,7 @@ namespace MIXUI.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public IActionResult Update(int id, [FromBody] PostUserDto updatedInfo)
+        public IActionResult Update(int id, [FromBody] RegisterDto updatedInfo)
         {
             // TODO: Check authorization
 
