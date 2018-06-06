@@ -8,8 +8,8 @@ namespace MIXUI.Services
     {
         public AutoMapperProfile()
         {
-            CreateMap<RegisterDto, User>();
-            CreateMap<User, UserDto>();
+            CreateMap<RegisterDto, AppUser>();
+            CreateMap<AppUser, UserDto>();
         }
     }
 }
