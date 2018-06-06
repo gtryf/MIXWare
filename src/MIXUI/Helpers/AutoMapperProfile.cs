@@ -2,7 +2,7 @@
 using MIXUI.Dtos;
 using MIXUI.Entities;
 
-namespace MIXUI.Services
+namespace MIXUI.Helpers
 {
     public class AutoMapperProfile : Profile
     {
@@ -10,6 +10,8 @@ namespace MIXUI.Services
         {
             CreateMap<RegisterDto, AppUser>();
             CreateMap<AppUser, UserDto>();
+
+            CreateMap<Workspace, WorkspaceDto>();
         }
     }
 }

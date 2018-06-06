@@ -23,13 +23,13 @@ namespace MIXUI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody]RegisterDto model)
+        public async Task<IActionResult> Post([FromBody]RegisterDto userInfo)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var userIdentity = _mapper.Map<AppUser>(model);
+            var userIdentity = _mapper.Map<AppUser>(userInfo);
 
-            var result = await _userManager.CreateAsync(userIdentity, model.Password);
+            var result = await _userManager.CreateAsync(userIdentity, userInfo.Password);
 
             if (!result.Succeeded) return new BadRequestObjectResult(Errors.AddErrorsToModelState(result, ModelState));
 
