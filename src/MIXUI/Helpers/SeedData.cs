@@ -28,7 +28,7 @@ namespace MIXUI.Helpers
             var user = await userManager.FindByNameAsync(username);
             if (user == null)
             {
-                user = new AppUser { UserName = username, Email = email, IsAdministrator = isAdmin };
+                user = new AppUser { UserName = username, Email = email, IsAdministrator = isAdmin, IsEnabled = true };
                 await userManager.CreateAsync(user, testUserPw);
             }
 

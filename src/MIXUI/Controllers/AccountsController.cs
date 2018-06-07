@@ -28,6 +28,7 @@ namespace MIXUI.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var userIdentity = _mapper.Map<AppUser>(userInfo);
+            userIdentity.IsEnabled = true;
 
             var result = await _userManager.CreateAsync(userIdentity, userInfo.Password);
 
