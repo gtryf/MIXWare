@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MIXUI.Dtos;
@@ -35,6 +37,36 @@ namespace MIXUI.Controllers
             if (!result.Succeeded) return new BadRequestObjectResult(Errors.AddErrorsToModelState(result, ModelState));
 
             return CreatedAtAction("GetById", "Users", new { id = userIdentity.Id }, _mapper.Map<UserDto>(userIdentity));
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "Admin")]
+        public IActionResult GetAll() => Ok(_userManager.Users.ToList().Select(_mapper.Map<UserDto>));
+
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(string id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (
+                !User.HasClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.Administrator) &&
+                !User.HasClaim(claim => claim.Type == Constants.Strings.JwtClaimIdentifiers.Id && claim.Value == id)
+            )
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<UserDto>(user));
         }
     }
 }
