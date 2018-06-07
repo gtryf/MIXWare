@@ -34,7 +34,7 @@ namespace MIXUI.Controllers
 
             var result = await _userManager.CreateAsync(userIdentity, userInfo.Password);
 
-            if (!result.Succeeded) return new BadRequestObjectResult(Errors.AddErrorsToModelState(result, ModelState));
+            if (!result.Succeeded) return BadRequest(Errors.AddErrorsToModelState(result, ModelState));
 
             return CreatedAtAction("GetById", "Users", new { id = userIdentity.Id }, _mapper.Map<UserDto>(userIdentity));
         }

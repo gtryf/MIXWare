@@ -38,7 +38,7 @@ namespace MIXUI.Controllers
             var identity = await GetClaimsIdentity(credentials.Username, credentials.Password);
             if (identity == null)
             {
-                return BadRequest(Errors.AddErrorToModelState("login_failure", "Invalid username or password.", ModelState));
+                return BadRequest(Errors.AddErrorToModelState("LoginFailure", "Invalid username or password.", ModelState));
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
