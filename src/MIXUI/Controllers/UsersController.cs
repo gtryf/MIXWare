@@ -37,9 +37,12 @@ namespace MIXUI.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!User.HasClaim(claim => claim.Type == Constants.Strings.JwtClaimIdentifiers.Id && claim.Value == id))
+            if (
+                !User.HasClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.Administrator) && 
+                !User.HasClaim(claim => claim.Type == Constants.Strings.JwtClaimIdentifiers.Id && claim.Value == id)
+            )
             {
-                return StatusCode(403);
+                return Unauthorized();
             }
 
             var user = await _userManager.FindByIdAsync(id);
