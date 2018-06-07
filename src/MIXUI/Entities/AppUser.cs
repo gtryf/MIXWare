@@ -10,6 +10,6 @@ namespace MIXUI.Entities
 
         public bool IsEnabled { get; set; }
 
-        public IList<Workspace> Workspaces { get; set; }
+        public virtual ICollection<Workspace> Workspaces { get; set; }
     }
 }

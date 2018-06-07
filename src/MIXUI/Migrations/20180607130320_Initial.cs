@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MIXUI.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -40,7 +40,8 @@ namespace MIXUI.Migrations
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
                     LockoutEnabled = table.Column<bool>(nullable: false),
                     AccessFailedCount = table.Column<int>(nullable: false),
-                    IsAdministrator = table.Column<bool>(nullable: false)
+                    IsAdministrator = table.Column<bool>(nullable: false),
+                    IsEnabled = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -154,7 +155,7 @@ namespace MIXUI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Workspace",
+                name: "Workspaces",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
@@ -163,11 +164,39 @@ namespace MIXUI.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Workspace", x => x.Id);
+                    table.PrimaryKey("PK_Workspaces", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Workspace_AspNetUsers_IdentityId",
+                        name: "FK_Workspaces_AspNetUsers_IdentityId",
                         column: x => x.IdentityId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Storable",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(maxLength: 100, nullable: false),
+                    Discriminator = table.Column<string>(nullable: false),
+                    FolderId = table.Column<Guid>(nullable: true),
+                    WorkspaceId = table.Column<Guid>(nullable: true),
+                    Data = table.Column<byte[]>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Storable", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Storable_Storable_FolderId",
+                        column: x => x.FolderId,
+                        principalTable: "Storable",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Storable_Workspaces_WorkspaceId",
+                        column: x => x.WorkspaceId,
+                        principalTable: "Workspaces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -210,8 +239,18 @@ namespace MIXUI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Workspace_IdentityId",
-                table: "Workspace",
+                name: "IX_Storable_FolderId",
+                table: "Storable",
+                column: "FolderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Storable_WorkspaceId",
+                table: "Storable",
+                column: "WorkspaceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Workspaces_IdentityId",
+                table: "Workspaces",
                 column: "IdentityId");
         }
 
@@ -233,10 +272,13 @@ namespace MIXUI.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Workspace");
+                name: "Storable");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Workspaces");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

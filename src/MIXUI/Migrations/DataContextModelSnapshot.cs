@@ -177,6 +177,33 @@ namespace MIXUI.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("MIXUI.Entities.Storable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
+
+                    b.Property<Guid?>("FolderId");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100);
+
+                    b.Property<Guid?>("WorkspaceId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FolderId");
+
+                    b.HasIndex("WorkspaceId");
+
+                    b.ToTable("Storable");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("Storable");
+                });
+
             modelBuilder.Entity("MIXUI.Entities.Workspace", b =>
                 {
                     b.Property<Guid>("Id")
@@ -192,7 +219,28 @@ namespace MIXUI.Migrations
 
                     b.HasIndex("IdentityId");
 
-                    b.ToTable("Workspace");
+                    b.ToTable("Workspaces");
+                });
+
+            modelBuilder.Entity("MIXUI.Entities.File", b =>
+                {
+                    b.HasBaseType("MIXUI.Entities.Storable");
+
+                    b.Property<byte[]>("Data");
+
+                    b.ToTable("File");
+
+                    b.HasDiscriminator().HasValue("File");
+                });
+
+            modelBuilder.Entity("MIXUI.Entities.Folder", b =>
+                {
+                    b.HasBaseType("MIXUI.Entities.Storable");
+
+
+                    b.ToTable("Folder");
+
+                    b.HasDiscriminator().HasValue("Folder");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -238,6 +286,17 @@ namespace MIXUI.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MIXUI.Entities.Storable", b =>
+                {
+                    b.HasOne("MIXUI.Entities.Folder")
+                        .WithMany("Children")
+                        .HasForeignKey("FolderId");
+
+                    b.HasOne("MIXUI.Entities.Workspace")
+                        .WithMany("Contents")
+                        .HasForeignKey("WorkspaceId");
                 });
 
             modelBuilder.Entity("MIXUI.Entities.Workspace", b =>

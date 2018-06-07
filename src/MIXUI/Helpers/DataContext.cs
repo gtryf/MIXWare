@@ -14,6 +14,11 @@ namespace MIXUI.Helpers
 
             builder.Entity<AppUser>()
                 .HasQueryFilter(u => u.IsEnabled);
+
+            builder.Entity<File>();
+            builder.Entity<Folder>();
         }
+
+        public DbSet<Workspace> Workspaces { get; set; }
     }
 }

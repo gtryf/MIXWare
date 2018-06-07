@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace MIXUI.Entities
@@ -13,5 +14,7 @@ namespace MIXUI.Entities
 
         public string IdentityId { get; set; }
         public AppUser Identity { get; set; }
+
+        public ICollection<Storable> Contents { get; set; }
     }
 }
