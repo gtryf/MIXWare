@@ -43,6 +43,25 @@ namespace MIXUI.Controllers
         [Authorize(Policy = "Admin")]
         public IActionResult GetAll() => Ok(_userManager.Users.ToList().Select(_mapper.Map<UserDto>));
 
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetSelf()
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_mapper.Map<UserDto>(user));
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetById(string id)
@@ -50,6 +69,11 @@ namespace MIXUI.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            if (id == "me")
+            {
+                id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             }
 
             if (
