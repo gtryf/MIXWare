@@ -71,11 +71,6 @@ namespace MIXUI.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id == "me")
-            {
-                id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
-            }
-
             if (
                 !User.HasClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.Administrator) &&
                 !User.HasClaim(claim => claim.Type == Constants.Strings.JwtClaimIdentifiers.Id && claim.Value == id)

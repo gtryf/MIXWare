@@ -12,6 +12,7 @@ namespace MIXUI.Helpers
             CreateMap<AppUser, UserDto>();
 
             CreateMap<Workspace, WorkspaceDto>();
+            CreateMap<CreateWorkspaceDto, Workspace>();
         }
     }
 }
