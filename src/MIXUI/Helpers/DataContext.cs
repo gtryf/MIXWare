@@ -20,5 +20,7 @@ namespace MIXUI.Helpers
         }
 
         public DbSet<Workspace> Workspaces { get; set; }
+        public DbSet<Folder> Folders { get; set; }
+        public DbSet<File> Files { get; set; }
     }
 }

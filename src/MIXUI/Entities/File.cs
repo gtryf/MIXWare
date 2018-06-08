@@ -2,6 +2,6 @@
 {
     public class File : Storable
     {
-        public byte[] Data { get; set; }
+        public virtual byte[] Data { get; set; }
     }
 }

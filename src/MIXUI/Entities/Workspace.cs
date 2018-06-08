@@ -6,15 +6,17 @@ namespace MIXUI.Entities
 {
     public class Workspace
     {
-        public string Id { get; set; }
+        public Workspace() => this.Root = new Folder() { Name = "Root" };
+
+        public virtual string Id { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 5)]
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
 
         public string IdentityId { get; set; }
-        public AppUser Identity { get; set; }
+        public virtual AppUser Identity { get; set; }
 
-        public ICollection<Storable> Contents { get; set; }
+        public virtual Folder Root { get; set; }
     }
 }

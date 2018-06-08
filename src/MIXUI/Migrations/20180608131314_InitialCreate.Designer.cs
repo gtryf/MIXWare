@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MIXUI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20180608083237_InitialCreate")]
+    [Migration("20180608131314_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,13 +191,13 @@ namespace MIXUI.Migrations
                         .IsRequired()
                         .HasMaxLength(100);
 
-                    b.Property<string>("WorkspaceId");
+                    b.Property<string>("ParentId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("FolderId");
 
-                    b.HasIndex("WorkspaceId");
+                    b.HasIndex("ParentId");
 
                     b.ToTable("Storable");
 
@@ -215,9 +215,13 @@ namespace MIXUI.Migrations
                         .IsRequired()
                         .HasMaxLength(100);
 
+                    b.Property<string>("RootId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IdentityId");
+
+                    b.HasIndex("RootId");
 
                     b.ToTable("Workspaces");
                 });
@@ -294,9 +298,9 @@ namespace MIXUI.Migrations
                         .WithMany("Children")
                         .HasForeignKey("FolderId");
 
-                    b.HasOne("MIXUI.Entities.Workspace")
-                        .WithMany("Contents")
-                        .HasForeignKey("WorkspaceId");
+                    b.HasOne("MIXUI.Entities.Storable", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId");
                 });
 
             modelBuilder.Entity("MIXUI.Entities.Workspace", b =>
@@ -304,6 +308,10 @@ namespace MIXUI.Migrations
                     b.HasOne("MIXUI.Entities.AppUser", "Identity")
                         .WithMany("Workspaces")
                         .HasForeignKey("IdentityId");
+
+                    b.HasOne("MIXUI.Entities.Folder", "Root")
+                        .WithMany()
+                        .HasForeignKey("RootId");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,6 +9,9 @@ namespace MIXUI.Entities
 
         [Required]
         [StringLength(100)]
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
+
+        public virtual string ParentId { get; set; }
+        public virtual Storable Parent { get; set; }
     }
 }

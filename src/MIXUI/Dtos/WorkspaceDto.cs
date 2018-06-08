@@ -6,6 +6,6 @@ namespace MIXUI.Dtos
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public ICollection<StorableDto> Contents { get; set; }
+        public StorableDto Root { get; set; }
     }
 }

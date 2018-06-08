@@ -6,7 +6,7 @@ namespace MIXUI.Entities
 {
     public class AppUser : IdentityUser
     {
-        public bool IsEnabled { get; set; }
+        public virtual bool IsEnabled { get; set; }
 
         public virtual ICollection<Workspace> Workspaces { get; set; }
     }

@@ -48,6 +48,34 @@ namespace MIXUI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Storable",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Name = table.Column<string>(maxLength: 100, nullable: false),
+                    ParentId = table.Column<string>(nullable: true),
+                    Discriminator = table.Column<string>(nullable: false),
+                    FolderId = table.Column<string>(nullable: true),
+                    Data = table.Column<byte[]>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Storable", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Storable_Storable_FolderId",
+                        column: x => x.FolderId,
+                        principalTable: "Storable",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Storable_Storable_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Storable",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -159,7 +187,8 @@ namespace MIXUI.Migrations
                 {
                     Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
-                    IdentityId = table.Column<string>(nullable: true)
+                    IdentityId = table.Column<string>(nullable: true),
+                    RootId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -170,32 +199,10 @@ namespace MIXUI.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Storable",
-                columns: table => new
-                {
-                    Id = table.Column<string>(nullable: false),
-                    Name = table.Column<string>(maxLength: 100, nullable: false),
-                    Discriminator = table.Column<string>(nullable: false),
-                    FolderId = table.Column<string>(nullable: true),
-                    WorkspaceId = table.Column<string>(nullable: true),
-                    Data = table.Column<byte[]>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Storable", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Storable_Storable_FolderId",
-                        column: x => x.FolderId,
+                        name: "FK_Workspaces_Storable_RootId",
+                        column: x => x.RootId,
                         principalTable: "Storable",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Storable_Workspaces_WorkspaceId",
-                        column: x => x.WorkspaceId,
-                        principalTable: "Workspaces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -243,14 +250,19 @@ namespace MIXUI.Migrations
                 column: "FolderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Storable_WorkspaceId",
+                name: "IX_Storable_ParentId",
                 table: "Storable",
-                column: "WorkspaceId");
+                column: "ParentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workspaces_IdentityId",
                 table: "Workspaces",
                 column: "IdentityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Workspaces_RootId",
+                table: "Workspaces",
+                column: "RootId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -271,16 +283,16 @@ namespace MIXUI.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Storable");
+                name: "Workspaces");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Workspaces");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Storable");
         }
     }
 }
