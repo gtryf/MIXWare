@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MIXUI.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -40,7 +40,6 @@ namespace MIXUI.Migrations
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
                     LockoutEnabled = table.Column<bool>(nullable: false),
                     AccessFailedCount = table.Column<int>(nullable: false),
-                    IsAdministrator = table.Column<bool>(nullable: false),
                     IsEnabled = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
@@ -158,7 +157,7 @@ namespace MIXUI.Migrations
                 name: "Workspaces",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     IdentityId = table.Column<string>(nullable: true)
                 },
@@ -177,11 +176,11 @@ namespace MIXUI.Migrations
                 name: "Storable",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(nullable: false),
+                    Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     Discriminator = table.Column<string>(nullable: false),
-                    FolderId = table.Column<Guid>(nullable: true),
-                    WorkspaceId = table.Column<Guid>(nullable: true),
+                    FolderId = table.Column<string>(nullable: true),
+                    WorkspaceId = table.Column<string>(nullable: true),
                     Data = table.Column<byte[]>(nullable: true)
                 },
                 constraints: table =>

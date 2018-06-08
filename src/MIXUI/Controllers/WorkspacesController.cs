@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MIXUI.Dtos;
@@ -17,18 +16,18 @@ namespace MIXUI.Controllers
     public class WorkspacesController : Controller
     {
         private readonly DataContext _appDbContext;
-        private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
+        private readonly IAuthorizationService _authorizationService;
 
-        public WorkspacesController(UserManager<AppUser> userManager, IMapper mapper, DataContext appDbContext)
+        public WorkspacesController(IMapper mapper, DataContext appDbContext, IAuthorizationService authorizationService)
         {
-            _userManager = userManager;
             _mapper = mapper;
             _appDbContext = appDbContext;
+            _authorizationService = authorizationService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetWorkspaces()
+        public IActionResult GetWorkspaces()
         {
             if (!ModelState.IsValid)
             {
@@ -36,25 +35,27 @@ namespace MIXUI.Controllers
             }
 
             var id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
-            var user = await _userManager.FindByIdAsync(id);
+            var workspaces = _appDbContext.Workspaces.AsNoTracking().Where(w => w.IdentityId == id);
 
-            return Ok(_mapper.Map<ICollection<WorkspaceDto>>(user.Workspaces));
+            return Ok(_mapper.Map<ICollection<WorkspaceDto>>(workspaces));
         }
 
         [HttpGet("{id}", Name = "GetWorkspace")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(string id)
         {
-            var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(id);
             if (workspace == null)
             {
                 return NotFound();
             }
-            if (workspace.IdentityId != userId)
+            if ((await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
+            {
+                return Ok(_mapper.Map<WorkspaceDto>(workspace));
+            }
+            else
             {
                 return Unauthorized();
             }
-            return Ok(_mapper.Map<WorkspaceDto>(workspace));
         }
 
         [HttpPost]
@@ -67,6 +68,7 @@ namespace MIXUI.Controllers
 
             var id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var entity = _mapper.Map<Workspace>(workspace);
+            entity.IdentityId = id;
             await _appDbContext.Workspaces.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
 
@@ -74,7 +76,7 @@ namespace MIXUI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWorkspace(Guid id)
+        public async Task<IActionResult> DeleteWorkspace(string id)
         {
             var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(id);
@@ -82,15 +84,17 @@ namespace MIXUI.Controllers
             {
                 return NotFound();
             }
-            if (workspace.IdentityId != userId)
+            if ((await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
+            {
+                _appDbContext.Remove(workspace);
+                await _appDbContext.SaveChangesAsync();
+
+                return NoContent();
+            }
+            else
             {
                 return Unauthorized();
             }
-
-            _appDbContext.Remove(workspace);
-            await _appDbContext.SaveChangesAsync();
-
-            return NoContent();
         }
     }
 }

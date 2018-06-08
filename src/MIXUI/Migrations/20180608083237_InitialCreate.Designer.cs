@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MIXUI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20180607130320_Initial")]
-    partial class Initial
+    [Migration("20180608083237_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -140,8 +140,6 @@ namespace MIXUI.Migrations
 
                     b.Property<bool>("EmailConfirmed");
 
-                    b.Property<bool>("IsAdministrator");
-
                     b.Property<bool>("IsEnabled");
 
                     b.Property<bool>("LockoutEnabled");
@@ -181,19 +179,19 @@ namespace MIXUI.Migrations
 
             modelBuilder.Entity("MIXUI.Entities.Storable", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("Discriminator")
                         .IsRequired();
 
-                    b.Property<Guid?>("FolderId");
+                    b.Property<string>("FolderId");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100);
 
-                    b.Property<Guid?>("WorkspaceId");
+                    b.Property<string>("WorkspaceId");
 
                     b.HasKey("Id");
 
@@ -208,7 +206,7 @@ namespace MIXUI.Migrations
 
             modelBuilder.Entity("MIXUI.Entities.Workspace", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("IdentityId");

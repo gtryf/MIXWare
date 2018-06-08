@@ -6,7 +6,7 @@ namespace MIXUI.Entities
 {
     public class Workspace
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 5)]

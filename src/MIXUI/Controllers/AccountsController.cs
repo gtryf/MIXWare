@@ -11,20 +11,24 @@ using MIXUI.Helpers;
 namespace MIXUI.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     public class AccountsController : Controller
     {
         private readonly DataContext _appDbContext;
         private readonly UserManager<AppUser> _userManager;
         private readonly IMapper _mapper;
+        private readonly IAuthorizationService _authorizationService;
 
-        public AccountsController(UserManager<AppUser> userManager, IMapper mapper, DataContext appDbContext)
+        public AccountsController(UserManager<AppUser> userManager, IMapper mapper, DataContext appDbContext, IAuthorizationService authorizationService)
         {
             _userManager = userManager;
             _mapper = mapper;
             _appDbContext = appDbContext;
+            _authorizationService = authorizationService;
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Post([FromBody]RegisterDto userInfo)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -39,12 +43,7 @@ namespace MIXUI.Controllers
             return CreatedAtAction("GetById", "Users", new { id = userIdentity.Id }, _mapper.Map<UserDto>(userIdentity));
         }
 
-        [HttpGet]
-        [Authorize(Policy = "Admin")]
-        public IActionResult GetAll() => Ok(_userManager.Users.ToList().Select(_mapper.Map<UserDto>));
-
         [HttpGet("me")]
-        [Authorize]
         public async Task<IActionResult> GetSelf()
         {
             if (!ModelState.IsValid)
@@ -59,24 +58,22 @@ namespace MIXUI.Controllers
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<UserDto>(user));
+            if ((await _authorizationService.AuthorizeAsync(User, user, "SameUserPolicy")).Succeeded)
+            {
+                return Ok(_mapper.Map<UserDto>(user));
+            }
+            else
+            {
+                return Unauthorized();
+            }
         }
 
         [HttpGet("{id}")]
-        [Authorize]
         public async Task<IActionResult> GetById(string id)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
-            if (
-                !User.HasClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.Administrator) &&
-                !User.HasClaim(claim => claim.Type == Constants.Strings.JwtClaimIdentifiers.Id && claim.Value == id)
-            )
-            {
-                return Unauthorized();
             }
 
             var user = await _userManager.FindByIdAsync(id);
@@ -85,7 +82,14 @@ namespace MIXUI.Controllers
                 return NotFound();
             }
 
-            return Ok(_mapper.Map<UserDto>(user));
+            if ((await _authorizationService.AuthorizeAsync(User, user, "SameUserPolicy")).Succeeded)
+            {
+                return Ok(_mapper.Map<UserDto>(user));
+            }
+            else
+            {
+                return Unauthorized();
+            }
         }
     }
 }

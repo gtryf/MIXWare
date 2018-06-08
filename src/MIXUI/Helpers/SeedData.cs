@@ -15,8 +15,8 @@ namespace MIXUI.Helpers
             using (var context = new DataContext(
                 serviceProvider.GetRequiredService<DbContextOptions<DataContext>>()))
             {
-                var adminID = await EnsureUser(serviceProvider, testUserPw, "power", "admin@mixware.com", true);
-                var uid = await EnsureUser(serviceProvider, testUserPw, "george", "user@mixware.com", false);
+                await EnsureUser(serviceProvider, testUserPw, "user1", "user1@mixware.com", false);
+                await EnsureUser(serviceProvider, testUserPw, "user2", "user2@mixware.com", false);
             }
         }
 
@@ -28,7 +28,7 @@ namespace MIXUI.Helpers
             var user = await userManager.FindByNameAsync(username);
             if (user == null)
             {
-                user = new AppUser { UserName = username, Email = email, IsAdministrator = isAdmin, IsEnabled = true };
+                user = new AppUser { UserName = username, Email = email, IsEnabled = true };
                 await userManager.CreateAsync(user, testUserPw);
             }
 

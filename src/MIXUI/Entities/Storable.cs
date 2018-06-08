@@ -5,7 +5,7 @@ namespace MIXUI.Entities
 {
     public abstract class Storable
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; }
 
         [Required]
         [StringLength(100)]

@@ -6,13 +6,7 @@
         {
             public static class JwtClaimIdentifiers
             {
-                public const string Rol = "rol", Id = "id";
-            }
-
-            public static class JwtClaims
-            {
-                public const string Administrator = "api_admin";
-                public const string User = "api_user";
+                public const string Id = "id";
             }
         }
     }

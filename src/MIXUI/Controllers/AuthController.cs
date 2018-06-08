@@ -75,8 +75,6 @@ namespace MIXUI.Controllers
                 return await Task.FromResult(new ClaimsIdentity(new GenericIdentity(userName, "Token"), new[]
                 {
                     new Claim(Constants.Strings.JwtClaimIdentifiers.Id, userToVerify.Id),
-                    new Claim(Constants.Strings.JwtClaimIdentifiers.Rol, userToVerify.IsAdministrator ?
-                        Constants.Strings.JwtClaims.Administrator : Constants.Strings.JwtClaims.User)
                 }));
             }
 

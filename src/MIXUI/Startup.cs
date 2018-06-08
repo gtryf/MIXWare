@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -63,8 +64,8 @@ namespace MIXUI
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("Admin", policy =>
-                    policy.RequireClaim(Constants.Strings.JwtClaimIdentifiers.Rol, Constants.Strings.JwtClaims.Administrator));
+                options.AddPolicy("SameUserPolicy", policy =>
+                    policy.Requirements.Add(new SameUserRequirement()));
             });
 
             // add identity
@@ -79,6 +80,10 @@ namespace MIXUI
             });
             builder = new IdentityBuilder(builder.UserType, typeof(IdentityRole), builder.Services);
             builder.AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
+
+            // configure DI
+            services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, WorkspaceAuthorizationHandler>();
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
