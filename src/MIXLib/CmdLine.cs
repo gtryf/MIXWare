@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Linq;
 
 namespace MIXLib.Util
@@ -7,7 +8,7 @@ namespace MIXLib.Util
     public static class CommandLineHelper
     {
         public static Dictionary<string, string> SplitCommandLine(string commandLine, Dictionary<string, string> aliases)
-		    => SplitCommandLine(commandLine, aliases, false);
+		    => SplitCommandLine(commandLine, aliases, RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 
         public static Dictionary<string, string> SplitCommandLine(string commandLine, Dictionary<string, string> aliases, bool noCase)
         {
