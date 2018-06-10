@@ -62,8 +62,7 @@ namespace MIXLib
 
         public void LoadDeck()
         {
-            var inInstr = instructionTable.Find(i => i.Name == "IN");
-            inInstr.Execute(new MIXWord(), 0, CARD_READER);
+            this.devices[CARD_READER].In(0).Wait();
 
             PC = 0;
             J.Value = 0;

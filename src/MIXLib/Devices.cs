@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace MIXLib
 {
@@ -25,7 +26,7 @@ namespace MIXLib
                 {
                     Ready = false;
                     store = value;
-                    StoreChanged();
+                    OnStoreChanged();
                     Ready = true;
                 }
             }
@@ -35,7 +36,7 @@ namespace MIXLib
 
         private Stream store;
 
-        protected virtual void StoreChanged() { }
+        protected virtual void OnStoreChanged() { }
 
         /// <summary>
         /// The device's block size in MIX words
@@ -95,23 +96,11 @@ namespace MIXLib
             return string.Format(result);
         }
 
-        public void Out(int M)
-        {
-            Thread t = new Thread(OutProc);
-            t.Start(M);
-        }
+        public Task Out(int M) => Task.Run(() => OutProc(M));
 
-        public void In(int M)
-        {
-            Thread t = new Thread(InProc);
-            t.Start(M);
-        }
+        public Task In(int M) => Task.Run(() => InProc(M));
 
-        public void IOC(int M)
-        {
-            Thread t = new Thread(IOCProc);
-            t.Start(M);
-        }
+        public Task IOC(int M) => Task.Run(() => IOC(M));
 
         protected abstract void OutProc(object M);
         protected abstract void InProc(object M);
@@ -128,77 +117,74 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
 
-                if (Store != null)
+                for (int i = 0; i < BlockSize; i++)
                 {
-                    int M = (int)data;
-
-                    for (int i = 0; i < BlockSize; i++)
-                    {
-                        byte[] buffer = Machine.Memory[M + i].ToByteArray();
-                        foreach (var b in buffer)
-                            Store.WriteByte(b);
-                    }
+                    byte[] buffer = Machine.Memory[M + i].ToByteArray();
+                    foreach (var b in buffer)
+                        Store.WriteByte(b);
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void InProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
 
-                if (Store != null)
+                for (int i = 0; i < BlockSize; i++)
                 {
-                    int M = (int)data;
-
-                    for (int i = 0; i < BlockSize; i++)
+                    byte[] buffer = new byte[6];
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        byte[] buffer = new byte[6];
-                        using (MemoryStream ms = new MemoryStream())
+                        int read;
+                        read = Store.Read(buffer, 0, 6);
+                        while (read > 0)
                         {
-                            int read;
+                            ms.Write(buffer, 0, read);
                             read = Store.Read(buffer, 0, 6);
-                            while (read > 0)
-                            {
-                                ms.Write(buffer, 0, read);
-                                read = Store.Read(buffer, 0, 6);
-                            }
-                            MIXWord w = MIXWord.FromByteArray(ms.ToArray());
-                            Machine.Memory[M + i].Value = w.Value;
                         }
+                        MIXWord w = MIXWord.FromByteArray(ms.ToArray());
+                        Machine.Memory[M + i].Value = w.Value;
                     }
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void IOCProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
-
-                if (Store != null)
-                {
-                    int M = (int)data;
-                    if (M == 0)
-                        Store.Seek(0, SeekOrigin.Begin);
-                    else if (M < 0)
-                        Store.Seek(-(M * BlockSize * 6), SeekOrigin.Current);
-                    else
-                        Store.Seek(M * BlockSize * 6, SeekOrigin.Current);
-                }
-
-                Ready = true;
+                int M = (int)data;
+                if (M == 0)
+                    Store.Seek(0, SeekOrigin.Begin);
+                else if (M < 0)
+                    Store.Seek(-(M * BlockSize * 6), SeekOrigin.Current);
+                else
+                    Store.Seek(M * BlockSize * 6, SeekOrigin.Current);
             }
+
+            Ready = true;
         }
     }
 
@@ -212,75 +198,72 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
+                Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
 
-                if (Store != null)
+                for (int i = 0; i < BlockSize; i++)
                 {
-                    int M = (int)data;
-                    Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
-
-                    for (int i = 0; i < BlockSize; i++)
-                    {
-                        byte[] buffer = Machine.Memory[M + i].ToByteArray();
-                        foreach (var b in buffer)
-                            Store.WriteByte(b);
-                    }
+                    byte[] buffer = Machine.Memory[M + i].ToByteArray();
+                    foreach (var b in buffer)
+                        Store.WriteByte(b);
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void InProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
+                Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
 
-                if (Store != null)
+                for (int i = 0; i < BlockSize; i++)
                 {
-                    int M = (int)data;
-                    Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
-
-                    for (int i = 0; i < BlockSize; i++)
+                    byte[] buffer = new byte[6];
+                    using (MemoryStream ms = new MemoryStream())
                     {
-                        byte[] buffer = new byte[6];
-                        using (MemoryStream ms = new MemoryStream())
+                        int read;
+                        read = Store.Read(buffer, 0, 6);
+                        while (read > 0)
                         {
-                            int read;
+                            ms.Write(buffer, 0, read);
                             read = Store.Read(buffer, 0, 6);
-                            while (read > 0)
-                            {
-                                ms.Write(buffer, 0, read);
-                                read = Store.Read(buffer, 0, 6);
-                            }
-                            MIXWord w = MIXWord.FromByteArray(ms.ToArray());
-                            Machine.Memory[M + i].Value = w.Value;
                         }
+                        MIXWord w = MIXWord.FromByteArray(ms.ToArray());
+                        Machine.Memory[M + i].Value = w.Value;
                     }
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void IOCProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
-
-                if (Store != null)
-                {
-                    int M = (int)data;
-                    if (M == 0)
-                        Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
-                }
-
-                Ready = true;
+                int M = (int)data;
+                if (M == 0)
+                    Store.Seek(Machine.X * BlockSize, SeekOrigin.Begin);
             }
+
+            Ready = true;
         }
     }
 
@@ -297,7 +280,7 @@ namespace MIXLib
         }
 
         protected StreamReader storeReader;
-        protected override void StoreChanged()
+        protected override void OnStoreChanged()
         {
             if (storeReader != null) storeReader.Close();
             if (Store != null)
@@ -308,44 +291,43 @@ namespace MIXLib
 
         protected override void InProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
 
-                if (Store != null)
+                if (storeReader.Peek() != -1)
                 {
-                    int M = (int)data;
+                    string inp = storeReader.ReadLine().PadRight(BlockSize * 5);
 
-                    if (storeReader.Peek() != -1)
+                    // Break the input string into chunks of 5.
+                    // Should be BlockSize chunks.
+                    var chunks = inp
+                        .Select((x, i) => new { Index = i, Value = x })
+                        .GroupBy(x => x.Index / 5)
+                        .Select(x => x.Select(v => v.Value).ToList())
+                        .ToList();
+
+                    int j = 0;
+                    foreach (var curr in chunks)
                     {
-                        string inp = storeReader.ReadLine().PadRight(BlockSize * 5);
+                        MIXWord w = new MIXWord();
+                        w[1] = MIXMachine.CHAR_TABLE[curr[0]];
+                        w[2] = MIXMachine.CHAR_TABLE[curr[1]];
+                        w[3] = MIXMachine.CHAR_TABLE[curr[2]];
+                        w[4] = MIXMachine.CHAR_TABLE[curr[3]];
+                        w[5] = MIXMachine.CHAR_TABLE[curr[4]];
 
-                        // Break the input string into chunks of 5.
-                        // Should be BlockSize chunks.
-                        var chunks = inp
-                            .Select((x, i) => new { Index = i, Value = x })
-                            .GroupBy(x => x.Index / 5)
-                            .Select(x => x.Select(v => v.Value).ToList())
-                            .ToList();
-
-                        int j = 0;
-                        foreach (var curr in chunks)
-                        {
-                            MIXWord w = new MIXWord();
-                            w[1] = MIXMachine.CHAR_TABLE[curr[0]];
-                            w[2] = MIXMachine.CHAR_TABLE[curr[1]];
-                            w[3] = MIXMachine.CHAR_TABLE[curr[2]];
-                            w[4] = MIXMachine.CHAR_TABLE[curr[3]];
-                            w[5] = MIXMachine.CHAR_TABLE[curr[4]];
-
-                            Machine.Memory[M + j] = w;
-                            j++;
-                        }
+                        Machine.Memory[M + j] = w;
+                        j++;
                     }
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void IOCProc(object data)
@@ -363,29 +345,28 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
+                Store.Seek(0, SeekOrigin.End);
 
-                if (Store != null)
+                for (int j = 0; j < BlockSize; j++)
                 {
-                    int M = (int)data;
-                    Store.Seek(0, SeekOrigin.End);
-
-                    for (int j = 0; j < BlockSize; j++)
-                    {
-                        string outp = MIXWordToString(Machine.Memory[M + j]);
-                        storeWriter.Write(outp);
-                    }
-                    storeWriter.WriteLine();
+                    string outp = MIXWordToString(Machine.Memory[M + j]);
+                    storeWriter.Write(outp);
                 }
-
-                Ready = true;
+                storeWriter.WriteLine();
             }
+
+            Ready = true;
         }
 
         protected StreamWriter storeWriter;
-        protected override void StoreChanged()
+        protected override void OnStoreChanged()
         {
             if (storeWriter != null) storeWriter.Close();
             if (Store != null)
@@ -416,26 +397,25 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
+                int M = (int)data;
 
-                if (Store != null)
+                StreamWriter writer = new StreamWriter(Store);
+                for (int j = 0; j < BlockSize; j++)
                 {
-                    int M = (int)data;
-
-                    StreamWriter writer = new StreamWriter(Store);
-                    for (int j = 0; j < BlockSize; j++)
-                    {
-                        string outp = MIXWordToString(Machine.Memory[M + j]);
-                        writer.Write(outp);
-                    }
-                    writer.WriteLine();
-                    writer.Flush();
+                    string outp = MIXWordToString(Machine.Memory[M + j]);
+                    writer.Write(outp);
                 }
-
-                Ready = true;
+                writer.WriteLine();
+                writer.Flush();
             }
+
+            Ready = true;
         }
 
         protected override void InProc(object M)
@@ -444,23 +424,22 @@ namespace MIXLib
 
         protected override void IOCProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
-
-                if (Store != null)
+                int M = (int)data;
+                if (M == 0)
                 {
-                    int M = (int)data;
-                    if (M == 0)
-                    {
-                        StreamWriter writer = new StreamWriter(Store);
-                        writer.WriteLine("============ PAGE BREAK ============");
-                        writer.Flush();
-                    }
+                    StreamWriter writer = new StreamWriter(Store);
+                    writer.WriteLine("============ PAGE BREAK ============");
+                    writer.Flush();
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
     }
 
@@ -475,63 +454,61 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            int M = (int)data;
+
+            StreamWriter writer = new StreamWriter(Console.OpenStandardOutput());
+            for (int j = 0; j < BlockSize; j++)
             {
-                Ready = false;
-
-                int M = (int)data;
-
-                StreamWriter writer = new StreamWriter(Console.OpenStandardOutput());
-                for (int j = 0; j < BlockSize; j++)
-                {
-                    string outp = MIXWordToString(Machine.Memory[M + j]);
-                    writer.Write(outp);
-                }
-                writer.WriteLine();
-                writer.Flush();
-
-                Ready = true;
+                string outp = MIXWordToString(Machine.Memory[M + j]);
+                writer.Write(outp);
             }
+            writer.WriteLine();
+            writer.Flush();
+
+            Ready = true;
         }
 
         protected override void InProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            int M = (int)data;
+
+            StreamReader storeReader = new StreamReader(Console.OpenStandardInput());
+            if (storeReader.Peek() != -1)
             {
-                Ready = false;
+                string inp = storeReader.ReadLine().PadRight(BlockSize * 5).Substring(0, BlockSize * 5);
 
-                int M = (int)data;
+                // Break the input string into chunks of 5.
+                // Should be BlockSize chunks.
+                var chunks = inp
+                    .Select((x, i) => new { Index = i, Value = x })
+                    .GroupBy(x => x.Index / 5)
+                    .Select(x => x.Select(v => v.Value).ToList())
+                    .ToList();
 
-                StreamReader storeReader = new StreamReader(Console.OpenStandardInput());
-                if (storeReader.Peek() != -1)
+                int j = 0;
+                foreach (var curr in chunks)
                 {
-                    string inp = storeReader.ReadLine().PadRight(BlockSize * 5).Substring(0, BlockSize * 5);
+                    MIXWord w = new MIXWord();
+                    w[1] = MIXMachine.CHAR_TABLE[curr[0]];
+                    w[2] = MIXMachine.CHAR_TABLE[curr[1]];
+                    w[3] = MIXMachine.CHAR_TABLE[curr[2]];
+                    w[4] = MIXMachine.CHAR_TABLE[curr[3]];
+                    w[5] = MIXMachine.CHAR_TABLE[curr[4]];
 
-                    // Break the input string into chunks of 5.
-                    // Should be BlockSize chunks.
-                    var chunks = inp
-                        .Select((x, i) => new { Index = i, Value = x })
-                        .GroupBy(x => x.Index / 5)
-                        .Select(x => x.Select(v => v.Value).ToList())
-                        .ToList();
-
-                    int j = 0;
-                    foreach (var curr in chunks)
-                    {
-                        MIXWord w = new MIXWord();
-                        w[1] = MIXMachine.CHAR_TABLE[curr[0]];
-                        w[2] = MIXMachine.CHAR_TABLE[curr[1]];
-                        w[3] = MIXMachine.CHAR_TABLE[curr[2]];
-                        w[4] = MIXMachine.CHAR_TABLE[curr[3]];
-                        w[5] = MIXMachine.CHAR_TABLE[curr[4]];
-
-                        Machine.Memory[M + j] = w;
-                        j++;
-                    }
+                    Machine.Memory[M + j] = w;
+                    j++;
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void IOCProc(object data)
@@ -550,80 +527,77 @@ namespace MIXLib
 
         protected override void OutProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            int M = (int)data;
+
+            StreamWriter writer = new StreamWriter(Store);
+            for (int j = 0; j < BlockSize; j++)
             {
-                Ready = false;
-
-                int M = (int)data;
-
-                StreamWriter writer = new StreamWriter(Store);
-                for (int j = 0; j < BlockSize; j++)
-                {
-                    string outp = MIXWordToString(Machine.Memory[M + j]);
-                    writer.Write(outp);
-                }
-                writer.WriteLine();
-                writer.Flush();
-
-                Ready = true;
+                string outp = MIXWordToString(Machine.Memory[M + j]);
+                writer.Write(outp);
             }
+            writer.WriteLine();
+            writer.Flush();
+
+            Ready = true;
         }
 
         protected override void InProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            int M = (int)data;
+
+            StreamReader storeReader = new StreamReader(Store);
+            if (storeReader.Peek() != -1)
             {
-                Ready = false;
+                string inp = storeReader.ReadLine().PadRight(BlockSize * 5).Substring(0, BlockSize * 5);
 
-                int M = (int)data;
+                // Break the input string into chunks of 5.
+                // Should be BlockSize chunks.
+                var chunks = inp
+                    .Select((x, i) => new { Index = i, Value = x })
+                    .GroupBy(x => x.Index / 5)
+                    .Select(x => x.Select(v => v.Value).ToList())
+                    .ToList();
 
-                StreamReader storeReader = new StreamReader(Store);
-                if (storeReader.Peek() != -1)
+                int j = 0;
+                foreach (var curr in chunks)
                 {
-                    string inp = storeReader.ReadLine().PadRight(BlockSize * 5).Substring(0, BlockSize * 5);
+                    MIXWord w = new MIXWord();
+                    w[1] = MIXMachine.CHAR_TABLE[curr[0]];
+                    w[2] = MIXMachine.CHAR_TABLE[curr[1]];
+                    w[3] = MIXMachine.CHAR_TABLE[curr[2]];
+                    w[4] = MIXMachine.CHAR_TABLE[curr[3]];
+                    w[5] = MIXMachine.CHAR_TABLE[curr[4]];
 
-                    // Break the input string into chunks of 5.
-                    // Should be BlockSize chunks.
-                    var chunks = inp
-                        .Select((x, i) => new { Index = i, Value = x })
-                        .GroupBy(x => x.Index / 5)
-                        .Select(x => x.Select(v => v.Value).ToList())
-                        .ToList();
-
-                    int j = 0;
-                    foreach (var curr in chunks)
-                    {
-                        MIXWord w = new MIXWord();
-                        w[1] = MIXMachine.CHAR_TABLE[curr[0]];
-                        w[2] = MIXMachine.CHAR_TABLE[curr[1]];
-                        w[3] = MIXMachine.CHAR_TABLE[curr[2]];
-                        w[4] = MIXMachine.CHAR_TABLE[curr[3]];
-                        w[5] = MIXMachine.CHAR_TABLE[curr[4]];
-
-                        Machine.Memory[M + j] = w;
-                        j++;
-                    }
+                    Machine.Memory[M + j] = w;
+                    j++;
                 }
-
-                Ready = true;
             }
+
+            Ready = true;
         }
 
         protected override void IOCProc(object data)
         {
-            lock (this)
+            SpinWait.SpinUntil(() => Ready);
+
+            Ready = false;
+
+            if (Store != null)
             {
-                Ready = false;
-
-                if (Store != null)
-                {
-                    int M = (int)data;
-                    if (M == 0)
-                        Store.Seek(0, SeekOrigin.Begin);
-                }
-
-                Ready = true;
+                int M = (int)data;
+                if (M == 0)
+                    Store.Seek(0, SeekOrigin.Begin);
             }
+
+            Ready = true;
         }
     }
 
