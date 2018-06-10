@@ -2,10 +2,8 @@
 
 namespace MIXUI.Dtos
 {
-    public class CreateStorableDto
+    public class CreateFileDto
     {
-        [Required]
-        public string Type { get; set; }
         [Required]
         [StringLength(100)]
         public string Name { get; set; }

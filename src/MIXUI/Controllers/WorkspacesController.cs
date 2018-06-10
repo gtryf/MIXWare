@@ -76,8 +76,8 @@ namespace MIXUI.Controllers
             return CreatedAtRoute("GetWorkspace", new { id = entity.Id }, _mapper.Map<WorkspaceDto>(entity));
         }
 
-        [HttpGet("{workspaceId}/{storableId}", Name = "GetStorable")]
-        public async Task<IActionResult> GetStorableById(string workspaceId, string storableId)
+		[HttpGet("{workspaceId}/{fileId}", Name = "GetFile")]
+		public async Task<IActionResult> GetFileById(string workspaceId, string fileId)
         {
             var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
@@ -90,55 +90,22 @@ namespace MIXUI.Controllers
                 return Unauthorized();
             }
 
-            var folder = (await _appDbContext.Folders.Include(i => i.Children).ToListAsync()).SingleOrDefault(i => i.Id == storableId);
-            var file = await _appDbContext.Files.FindAsync(storableId);
-            if (folder == null && file == null)
+			var file = await _appDbContext.Files.FindAsync(fileId);
+			if (file == null)
             {
                 return NotFound();
             }
-            var s = (Storable)folder ?? file;
-            bool found = false;
-            while (s != null)
-            {
-                if (s.Id == workspace.Root.Id)
-                {
-                    found = true;
-                    break;
-                }
-                s = await _appDbContext.Folders.FindAsync(s.ParentId);
-            }
-            if (!found)
-            {
-                return BadRequest(Errors.AddErrorToModelState("NotInWorkspace", "The specified storable is not in the workspace", ModelState));
-            }
+			if (file.WorkspaceId != workspaceId) 
+			{
+				return BadRequest(Errors.AddErrorToModelState("NotInWorkspace", "The specified file does not belong to this workspace", ModelState));
+			}
 
-            if (file != null)
-            {
-                return Ok(new
-                {
-                    file.Id,
-                    file.Name,
-                    Data = Encoding.UTF8.GetString(file.Data),
-                });
-            }
-            else
-            {
-                return Ok(new
-                {
-                    folder.Id,
-                    folder.Name,
-                    Children = folder.Children.Select(i => _mapper.Map<StorableDto>(i)),
-                });
-            }
+			return Ok(_mapper.Map<FileDto>(file));
         }
 
-        [HttpPost("{workspaceId}/{parentId}")]
-        public async Task<ActionResult> CreateStorable(string workspaceId, string parentId, [FromBody]CreateStorableDto data)
+        [HttpPost("{workspaceId}")]
+		public async Task<ActionResult> CreateFile(string workspaceId, [FromBody]CreateFileDto data)
         {
-            if (data.Type != "folder" && data.Type != "file")
-            {
-                return BadRequest(Errors.AddErrorToModelState("InvalidType", "Storable type must either be 'file' or 'folder'", ModelState));
-            }
             var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
             if (workspace == null)
@@ -149,44 +116,13 @@ namespace MIXUI.Controllers
             {
                 return Unauthorized();
             }
-            var parent = await _appDbContext.Folders.FindAsync(parentId);
-            if (parent == null)
-            {
-                return NotFound();
-            }
-            bool found = false;
-            Storable s = parent;
-            while (s != null)
-            {
-                if (s.Id == workspace.Root.Id)
-                {
-                    found = true;
-                    break;
-                }
-                s = await _appDbContext.Folders.FindAsync(s.ParentId);
-            }
-            if (!found)
-            {
-                return BadRequest(Errors.AddErrorToModelState("NotInWorkspace", "The specified storable is not in the workspace", ModelState));
-            }
 
-            if (data.Type == "folder")
-            {
-                var entity = new Folder() { Name = data.Name, ParentId = parentId };
-                await _appDbContext.AddAsync(entity);
-                await _appDbContext.SaveChangesAsync();
+			var entity = new File() { Name = data.Name, Data = Encoding.UTF8.GetBytes(data.FileContents), WorkspaceId = workspaceId };
+            await _appDbContext.AddAsync(entity);
+            await _appDbContext.SaveChangesAsync();
 
-                return CreatedAtRoute("GetStorable", new { workspaceId = workspaceId, storableId = entity.Id }, _mapper.Map<StorableDto>(entity));
-            }
-            else
-            {
-                var entity = new File() { Name = data.Name, Data = Encoding.UTF8.GetBytes(data.FileContents), ParentId = parentId };
-                await _appDbContext.AddAsync(entity);
-                await _appDbContext.SaveChangesAsync();
-
-                return CreatedAtRoute("GetStorable", new { workspaceId = workspaceId, storableId = entity.Id }, _mapper.Map<StorableDto>(entity));
-            }
-        }
+            return CreatedAtRoute("GetFile", new { workspaceId = workspaceId, fileId = entity.Id }, _mapper.Map<CreatedFileDto>(entity));
+		}
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWorkspace(string id)

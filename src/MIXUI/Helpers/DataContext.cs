@@ -15,12 +15,13 @@ namespace MIXUI.Helpers
             builder.Entity<AppUser>()
                 .HasQueryFilter(u => u.IsEnabled);
 
-            builder.Entity<File>();
-            builder.Entity<Folder>();
+			builder.Entity<File>()
+				   .Property(f => f.Type)
+				   .HasDefaultValue(FileType.Source)
+				   .HasConversion<string>();
         }
 
         public DbSet<Workspace> Workspaces { get; set; }
-        public DbSet<Folder> Folders { get; set; }
-        public DbSet<File> Files { get; set; }
+		public DbSet<File> Files { get; set; }
     }
 }

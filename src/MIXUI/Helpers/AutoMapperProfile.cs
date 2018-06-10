@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Text;
+using AutoMapper;
 using MIXUI.Dtos;
 using MIXUI.Entities;
 
@@ -14,10 +16,11 @@ namespace MIXUI.Helpers
             CreateMap<Workspace, WorkspaceDto>();
             CreateMap<CreateWorkspaceDto, Workspace>();
 
-            CreateMap<Folder, StorableDto>()
-                .ForMember(dest => dest.Type, opts => opts.UseValue("folder"));
-            CreateMap<File, StorableDto>()
-                .ForMember(dest => dest.Type, opts => opts.UseValue("file"));
+			CreateMap<File, CreatedFileDto>();
+			CreateMap<File, FileDto>()
+				.ForMember(dest => dest.Data, opt =>
+						   opt.ResolveUsing(input =>
+											input.Type == FileType.CompiledOutput ? Convert.ToBase64String(input.Data) : Encoding.UTF8.GetString(input.Data)));
         }
     }
 }
