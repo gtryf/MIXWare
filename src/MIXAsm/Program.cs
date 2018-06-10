@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
-
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-
-using MIXLib;
 using MIXLib.Util;
-using MIXLib.Parser;
 
 namespace MIXAsm
 {
@@ -44,7 +37,7 @@ namespace MIXAsm
             aliases.Add("-?", "--help");
             aliases.Add("-h", "--help");
 
-            Dictionary<string, string> cmdLine = CommandLineHelper.SplitCommandLine(Environment.CommandLine, aliases, true);
+            Dictionary<string, string> cmdLine = CommandLineHelper.SplitCommandLine(Environment.CommandLine, aliases);
 
             Console.Error.WriteLine("MIXAL Assembler, (c) 2009 George Tryfonas");
 

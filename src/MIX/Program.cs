@@ -30,7 +30,7 @@ namespace MIX
             aliases.Add("-?", "--help");
             aliases.Add("-h", "--help");
 
-            Dictionary<string, string> cmdLine = CommandLineHelper.SplitCommandLine(Environment.CommandLine, aliases, true);
+            Dictionary<string, string> cmdLine = CommandLineHelper.SplitCommandLine(Environment.CommandLine, aliases);
             if (cmdLine.Count == 0)
             {
                 Console.WriteLine("This is MIX v0.1, (c) 2009 George Tryfonas\nAn mplementation of the machine described by Don Knuth.\n\nType '?' or 'help' at the prompt for instructions.\n");
