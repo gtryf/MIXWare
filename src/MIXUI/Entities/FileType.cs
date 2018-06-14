@@ -4,6 +4,7 @@
     {
 		Source,
         CompiledOutput,
+        Deck,
         SymbolTable,
         Listing,
     }

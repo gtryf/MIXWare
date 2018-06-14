@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -14,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using MIXUI.Assembler;
 using MIXUI.Entities;
 using MIXUI.Helpers;
 using Swashbuckle.AspNetCore.Swagger;
@@ -84,6 +86,37 @@ namespace MIXUI
             // configure DI
             services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, WorkspaceAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, FileAuthorizationHandler>();
+
+            services.AddScoped<PlainTextPrettyPrinter>();
+            services.AddScoped<TeXPrettyPrinter>();
+            services.AddScoped<Func<string, IPrettyPrinter>>(serviceProvider => serviceType =>
+            {
+                switch (serviceType)
+                {
+                    case "plain":
+                        return serviceProvider.GetService<PlainTextPrettyPrinter>();
+                    case "tex":
+                        return serviceProvider.GetService<TeXPrettyPrinter>();
+                    default:
+                        throw new KeyNotFoundException();
+                }
+            });
+
+            services.AddScoped<BinaryAssembler>();
+            services.AddScoped<CardAssembler>();
+            services.AddScoped<Func<string, IAssembler>>(serviceProvider => serviceType =>
+            {
+                switch (serviceType)
+                {
+                    case "binary":
+                        return serviceProvider.GetService<BinaryAssembler>();
+                    case "card":
+                        return serviceProvider.GetService<CardAssembler>();
+                    default:
+                        throw new KeyNotFoundException();
+                }
+            });
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
