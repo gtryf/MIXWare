@@ -20,8 +20,8 @@ namespace MIXUI.Assembler
                 var assembly = new BinaryAssembly
                 {
                     StartLoc = parser.StartLoc,
-                    Assembly = parser.Assembly,
-                    SymbolTable = parser.SymbolTable
+                    Assembly = parser.Assembly.ToList(),
+                    SymbolTable = new SerializableDictionary<string, MIXLib.MIXWord>(parser.SymbolTable),
                 };
                 var serializer = new XmlSerializer(typeof(BinaryAssembly));
                 var xml = new StringBuilder();
