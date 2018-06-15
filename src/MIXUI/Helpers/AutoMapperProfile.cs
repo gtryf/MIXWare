@@ -17,14 +17,19 @@ namespace MIXUI.Helpers
             CreateMap<RegisterDto, AppUser>();
             CreateMap<AppUser, UserDto>();
 
-            CreateMap<Workspace, WorkspaceDto>();
+            CreateMap<Workspace, ShortWorkspaceDto>();
             CreateMap<CreateWorkspaceDto, Workspace>();
 
 			CreateMap<File, CreatedFileDto>();
 			CreateMap<File, FileDto>()
-				.ForMember(dest => dest.Data, opt =>
-						   opt.ResolveUsing(input =>
-											input.Type == FileType.CompiledOutput ? Convert.ToBase64String(input.Data) : Encoding.UTF8.GetString(input.Data)));
+				.ForMember(dest => dest.Data, opt => 
+                    opt.ResolveUsing(input => 
+                        input.Type == FileType.CompiledOutput ? Convert.ToBase64String(input.Data) : Encoding.UTF8.GetString(input.Data)));
+
+            CreateMap<Workspace, ShortWorkspaceDto>()
+                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files.Count));
+            CreateMap<Workspace, FullWorkspaceDto>()
+                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files.Count));
         }
     }
 }

@@ -36,22 +36,22 @@ namespace MIXUI.Controllers
             }
 
             var id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
-            var workspaces = _appDbContext.Workspaces.AsNoTracking().Where(w => w.IdentityId == id);
+            var workspaces = _appDbContext.Workspaces.AsNoTracking().Include(w => w.Files).Where(w => w.IdentityId == id);
 
-            return Ok(_mapper.Map<ICollection<WorkspaceDto>>(workspaces));
+            return Ok(_mapper.Map<ICollection<ShortWorkspaceDto>>(workspaces));
         }
 
         [HttpGet("{id}", Name = "GetWorkspace")]
         public async Task<IActionResult> GetById(string id)
         {
-            var workspace = await _appDbContext.Workspaces.FindAsync(id);
+            var workspace = await _appDbContext.Workspaces.AsNoTracking().Include(w => w.Files).SingleOrDefaultAsync(w => w.Id == id);
             if (workspace == null)
             {
                 return NotFound();
             }
             if ((await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
             {
-                return Ok(_mapper.Map<WorkspaceDto>(workspace));
+                return Ok(_mapper.Map<FullWorkspaceDto>(workspace));
             }
             else
             {
@@ -73,7 +73,7 @@ namespace MIXUI.Controllers
             await _appDbContext.Workspaces.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
 
-            return CreatedAtRoute("GetWorkspace", new { id = entity.Id }, _mapper.Map<WorkspaceDto>(entity));
+            return CreatedAtRoute("GetWorkspace", new { id = entity.Id }, _mapper.Map<ShortWorkspaceDto>(entity));
         }
 
 		[HttpGet("{workspaceId}/{fileId}", Name = "GetFile")]
