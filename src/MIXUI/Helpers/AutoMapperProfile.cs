@@ -10,6 +10,10 @@ namespace MIXUI.Helpers
     {
         public AutoMapperProfile()
         {
+            CreateMap<ErrorInfo, ErrorInfoDto>();
+            CreateMap<Submission, SuccessfulSubmissionDto>();
+            CreateMap<Submission, FailedSubmissionDto>();
+
             CreateMap<RegisterDto, AppUser>();
             CreateMap<AppUser, UserDto>();
 

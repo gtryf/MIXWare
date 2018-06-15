@@ -32,6 +32,10 @@
 
   <ItemGroup>
     <Compile Remove="Entities\Folder.cs" />
+    <Compile Remove="Migrations\20180615092959_Submissions.cs" />
+    <Compile Remove="Migrations\20180615092959_Submissions.Designer.cs" />
+    <Compile Remove="Migrations\20180615111410_SubmissionIdentity.cs" />
+    <Compile Remove="Migrations\20180615111410_SubmissionIdentity.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MIXLib\MIXLib.csproj" />

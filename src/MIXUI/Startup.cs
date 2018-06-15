@@ -88,6 +88,7 @@ namespace MIXUI
             services.AddSingleton<IAuthorizationHandler, UserAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, WorkspaceAuthorizationHandler>();
             services.AddSingleton<IAuthorizationHandler, FileAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, SubmissionAuthorizationHandler>();
 
             services.AddScoped<PlainTextPrettyPrinter>();
             services.AddScoped<TeXPrettyPrinter>();
