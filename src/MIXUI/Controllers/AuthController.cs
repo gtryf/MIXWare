@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MIXUI.Dtos;
@@ -17,13 +18,65 @@ namespace MIXUI.Controllers
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
+        private readonly ILogger _logger;
         private readonly UserManager<AppUser> _userManager;
         private readonly AppSettings _appSettings;
 
-        public AuthController(UserManager<AppUser> userManager, IOptions<AppSettings> appSettings)
+        public AuthController(
+            ILogger<AuthController> logger,
+            UserManager<AppUser> userManager, 
+            IOptions<AppSettings> appSettings)
         {
             _userManager = userManager;
             _appSettings = appSettings.Value;
+            _logger = logger;
+        }
+
+        private async Task<bool> DoCheckToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var validationParameters = new TokenValidationParameters()
+            {
+                ValidateLifetime = true,
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+            };
+            SecurityToken validatedToken = null;
+            ClaimsPrincipal principal = null;
+
+            try
+            {
+                principal = tokenHandler.ValidateToken(token, validationParameters, out validatedToken);
+            }
+            catch(SecurityTokenException ex)
+            {
+                _logger.LogWarning($"Token was found to be invalid. Message: {ex.Message}");
+                return false; 
+            }
+            
+            var userIdClaim = principal.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
+            var foundUser = await _userManager.FindByIdAsync(userIdClaim) != null;
+            if (!foundUser) 
+            {
+                _logger.LogWarning($"Token was valid, but user claim not in database. User: {userIdClaim}");
+            }
+            return foundUser;
+        }
+
+        [HttpGet("check_token")]
+        public async Task<IActionResult> CheckToken(string token) 
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Ok(new 
+            {
+                Valid = await DoCheckToken(token),
+            });
         }
 
         // POST api/auth/login
@@ -55,6 +108,7 @@ namespace MIXUI.Controllers
             return Ok(new
             {
                 Id = identity.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value,
+                credentials.Username,
                 Token = tokenString,
             });
         }
