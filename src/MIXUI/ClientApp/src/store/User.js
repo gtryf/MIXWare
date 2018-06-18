@@ -9,6 +9,7 @@ const initialState = {
         username: '',
         password: '',
     },
+    currentUser: client.getUser(),
     isLoading: false,
     isFailed: false,
     isLoggedIn: client.isLoggedIn()
@@ -33,13 +34,13 @@ export const reducer = (state, action) => {
 
     switch (action.type) {
         case loginRequestType:
-            return { ...state, isLoading: true, isLoggedIn: false, isFailed: false };
+            return { ...state, isLoading: true, isLoggedIn: false, isFailed: false, currentUser: null };
         case loginSuccessType:
-            return { ...state, isLoading: false, isLoggedIn: true, isFailed: false };
+            return { ...state, isLoading: false, isLoggedIn: true, isFailed: false, currentUser: client.getUser() };
         case loginFailureType:
-            return { ...state, isLoading: false, isFailed: true, isLoggedIn: false };
+            return { ...state, isLoading: false, isFailed: true, isLoggedIn: false, currentUser: null };
         case logoutUserType:
-            return { ...state, isLoading: false, isLoggedIn: false, isFailed: false };
+            return { ...state, isLoading: false, isLoggedIn: false, isFailed: false, currentUser: null };
         default:
             return state;
     }

@@ -20,7 +20,7 @@ class Api {
         }
     }
 
-    getUser = () => this.user;
+    getUser = () => this.user && JSON.parse(this.user);
 
     removeUser() {
         this.user = null;
