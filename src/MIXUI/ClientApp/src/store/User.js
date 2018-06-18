@@ -1,11 +1,30 @@
 import { client } from '../Api';
 
-const loginUserType = 'LOGIN';
+const loginRequestType = 'LOGIN_REQUEST';
+const loginSuccessType = 'LOGIN_SUCCESS';
+const loginFailureType = 'LOGIN_FAILURE';
 const logoutUserType = 'LOGOUT';
-const initialState = { user: null }
+const initialState = {
+    loginFormData: {
+        username: '',
+        password: '',
+    },
+    isLoading: false,
+    isFailed: false,
+    isLoggedIn: client.isLoggedIn()
+}
+
+const loginRequest = () => ({ type: loginRequestType });
+const loginSuccess = (userInfo) => ({ type: loginSuccessType });
+const loginFailure = (error) => ({ type: loginFailureType, error });
 
 export const actionCreators = {
-    login: (username, password) => ({ type: loginUserType, user: { username, password } }),
+    login: (username, password) => (dispatch) => {
+        dispatch(loginRequest());
+        client.login(username, password)
+            .then((resp) => { dispatch(loginSuccess(resp)); })
+            .catch((err) => { dispatch(loginFailure(err)); });
+    },
     logout: () => ({ type: logoutUserType }),
 };
 
@@ -13,16 +32,14 @@ export const reducer = (state, action) => {
     state = state || initialState;
 
     switch (action.type) {
-        case loginUserType:
-            client.login(action.user.username, action.user.password);
-            if (client.isLoggedIn()) {
-                return { ...state, user: action.user };
-            } else {
-                return { ...state, user: null };
-            }
+        case loginRequestType:
+            return { ...state, isLoading: true, isLoggedIn: false, isFailed: false };
+        case loginSuccessType:
+            return { ...state, isLoading: false, isLoggedIn: true, isFailed: false };
+        case loginFailureType:
+            return { ...state, isLoading: false, isFailed: true, isLoggedIn: false };
         case logoutUserType:
-            client.logout();
-            return { ...state, user: null };
+            return { ...state, isLoading: false, isLoggedIn: false, isFailed: false };
         default:
             return state;
     }

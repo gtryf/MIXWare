@@ -20,6 +20,8 @@ class Api {
         }
     }
 
+    getUser = () => this.user;
+
     removeUser() {
         this.user = null;
         if (this.useSessionStorage) {

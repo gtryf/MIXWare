@@ -7,3 +7,10 @@ body > .grid {
 .column {
     max-width: 450px;
 }
+.holder {
+    height: 600px;
+}
+
+    .holder .middle {
+        height: 100%
+    }

@@ -1,73 +1,123 @@
 import './Login.css';
+import PropTypes from 'prop-types';
 import React from 'react';
-import { bindActionCreators } from 'redux';
+import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import { actionCreators } from '../store/User';
+import Field from './Field';
 
 class Login extends React.Component {
-    constructor(props) {
-        super(props);
+    static propTypes = {
+        isLoading: PropTypes.bool.isRequired,
+        errorMessage: PropTypes.string,
+        fields: PropTypes.object,
+        isLoggedIn: PropTypes.bool.isRequired,
+        onSubmit: PropTypes.func.isRequired,
+    };
 
-        // reset login status
-        this.props.logout();
-
-        this.state = {
+    state = {
+        fields: this.props.fields || {
             username: '',
             password: '',
-        };
+        },
+        fieldErrors: {},
+        isLoggedIn: this.props.isLoggedIn,
+    };
 
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+    componentWillReceiveProps(update) {
+        this.setState({ fields: update.fields });
     }
 
-    handleChange(e) {
-        const { name, value } = e.target;
-        this.setState({ [name]: value });
-    }
+    validate = () => {
+        const credentials = this.state.fields;
+        const fieldErrors = this.state.fieldErrors;
+        const errMessages = Object.keys(fieldErrors).filter((k) => fieldErrors[k]);
 
-    handleSubmit(e) {
-        e.preventDefault();
+        if (!credentials.username) return true;
+        if (!credentials.password) return true;
+        if (errMessages.length) return true;
+
+        return false;
+    };
+
+    onFormSubmit = (evt) => {
+        const credentials = this.state.fields;
+        evt.preventDefault();
         
-        const { username, password } = this.state;
-        if (username && password) {
-            this.props.login(username, password);
-        }
-    }
+        if (this.validate()) return;
+
+        this.props.onSubmit(credentials);
+    };
+
+    onInputChange = ({ name, value, error }) => {
+        const fields = this.state.fields;
+        const fieldErrors = this.state.fieldErrors;
+
+        fields[name] = value;
+        fieldErrors[name] = error;
+
+        this.setState({ fields, fieldErrors });
+    };
 
     render() {
-        const { username, password } = this.state;
+        if (this.props.isLoggedIn) {
+            return <Redirect to='/' />;
+        }
         return (
-            <div className='ui middle aligned center aligned grid'>
-                <div className='column'>
-                    <h2 className='ui teal header'>
-                        <div className='content'>
-                            Login to your account
+            <div className='holder'>
+                <div className='ui middle aligned center aligned grid'>
+                    <div className='column'>
+                        <h2 className='ui teal header'>
+                            <div className='content'>
+                                Login to your account
                         </div>
-                    </h2>
-                    <form className='ui large form' onSubmit={this.handleSubmit}>
-                        <div className='ui stacked segment'>
-                            <div className='field'>
-                                <div className='ui left icon input'>
-                                    <i className='user icon"'></i>
-                                    <input type='text' name='username' placeholder='Username' value={username} onChange={this.handleChange} />
-                                </div>
+                        </h2>
+                        <form className={this.props.isLoading ? 'ui large loading form' : 'ui large form'} onSubmit={this.onFormSubmit}>
+                            <div className='ui stacked segment'>
+                                <Field
+                                    placeholder='Username'
+                                    name='username'
+                                    type='text'
+                                    value={this.state.fields.username}
+                                    onChange={this.onInputChange}
+                                    validate={(val) => val ? false : 'Username required'} />
+                                <Field
+                                    placeholder='Password'
+                                    name='password'
+                                    type='password'
+                                    value={this.state.fields.password}
+                                    onChange={this.onInputChange}
+                                    validate={(val) => val ? false : 'Password required'} />
+
+                                <button className='ui fluid large teal submit button'>Login</button>
                             </div>
-                            <div className='field'>
-                                <div className='ui left icon input'>
-                                    <i className='lock icon'></i>
-                                    <input type='password' name='password' placeholder='Password' value={password} onChange={this.handleChange} />
-                                </div>
-                            </div>
-                            <button className='ui fluid large teal submit button'>Login</button>
-                        </div>
-                    </form>
+                            {this.props.isFailed ? <div className="ui message">Login failed</div> : null}
+                        </form>
+                    </div>
                 </div>
             </div>
         );
     }
 };
 
+function mapStateToProps(state) {
+    return {
+        isLoading: state.users.isLoading,
+        fields: state.users.loginFormData,
+        isFailed: state.users.isFailed,
+        isLoggedIn: state.users.isLoggedIn,
+    }
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        onSubmit: (credentials) => {
+            dispatch(actionCreators.login(credentials.username, credentials.password));
+        }
+    }
+}
+
 export default connect(
-    state => state.user,
-    dispatch => bindActionCreators(actionCreators, dispatch)
-  )(Login);
+    mapStateToProps,
+    mapDispatchToProps
+)(Login);
