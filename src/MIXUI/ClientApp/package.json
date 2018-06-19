@@ -1,10 +1,12 @@
 {
-  "name": "MIXUI",
+  "name": "mixui",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "bootstrap": "^3.3.7",
     "jquery": "^3.3.1",
     "react": "^16.0.0",
+    "react-bootstrap": "^0.32.1",
     "react-dom": "^16.0.0",
     "react-redux": "^5.0.6",
     "react-router-dom": "^4.2.2",
@@ -12,9 +14,7 @@
     "react-scripts": "1.0.17",
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
-    "rimraf": "^2.6.2",
-    "semantic-ui-css": "^2.3.2",
-    "semantic-ui-react": "^0.81.1"
+    "rimraf": "^2.6.2"
   },
   "scripts": {
     "start": "rimraf ./build && react-scripts start",

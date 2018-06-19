@@ -1,10 +1,10 @@
 import './Login.css';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { Button, FormGroup, FormControl, ControlLabel, Alert, Row, Grid, Col } from 'react-bootstrap';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import { actionCreators } from '../store/User';
-import Field from './Field';
 
 class Login extends React.Component {
     static propTypes = {
@@ -20,7 +20,6 @@ class Login extends React.Component {
             username: '',
             password: '',
         },
-        fieldErrors: {},
         isLoggedIn: this.props.isLoggedIn,
     };
 
@@ -28,35 +27,30 @@ class Login extends React.Component {
         this.setState({ fields: update.fields });
     }
 
-    validate = () => {
+    validateForm = () => {
         const credentials = this.state.fields;
-        const fieldErrors = this.state.fieldErrors;
-        const errMessages = Object.keys(fieldErrors).filter((k) => fieldErrors[k]);
 
-        if (!credentials.username) return true;
-        if (!credentials.password) return true;
-        if (errMessages.length) return true;
+        if (!credentials.username) return false;
+        if (!credentials.password) return false;
 
-        return false;
+        return true;
     };
 
     onFormSubmit = (evt) => {
         const credentials = this.state.fields;
         evt.preventDefault();
-        
-        if (this.validate()) return;
+
+        if (!this.validateForm()) return;
 
         this.props.onSubmit(credentials);
     };
 
-    onInputChange = ({ name, value, error }) => {
+    onInputChange = (evt) => {
         const fields = this.state.fields;
-        const fieldErrors = this.state.fieldErrors;
 
-        fields[name] = value;
-        fieldErrors[name] = error;
+        fields[evt.target.id] = evt.target.value;
 
-        this.setState({ fields, fieldErrors });
+        this.setState({ fields });
     };
 
     render() {
@@ -64,38 +58,46 @@ class Login extends React.Component {
             return <Redirect to='/' />;
         }
         return (
-            <div className='holder'>
-                <div className='ui middle aligned center aligned grid'>
-                    <div className='column'>
-                        <h2 className='ui teal header'>
-                            <div className='content'>
-                                Login to your account
-                        </div>
-                        </h2>
-                        <form className={this.props.isLoading ? 'ui large loading form' : 'ui large form'} onSubmit={this.onFormSubmit}>
-                            <div className='ui stacked segment'>
-                                <Field
-                                    placeholder='Username'
-                                    name='username'
-                                    type='text'
+            <Grid>
+                <Row>
+                    <Col mdOffset={5} md={3}>
+                        <form className="form-login" onSubmit={this.onFormSubmit}>
+                            <h4>Log in to your account</h4>
+                            <FormGroup controlId="username" bsSize="large">
+                                <ControlLabel>Username</ControlLabel>
+                                <FormControl
+                                    autoFocus
+                                    type="text"
                                     value={this.state.fields.username}
                                     onChange={this.onInputChange}
-                                    validate={(val) => val ? false : 'Username required'} />
-                                <Field
-                                    placeholder='Password'
-                                    name='password'
-                                    type='password'
+                                />
+                            </FormGroup>
+                            <FormGroup controlId="password" bsSize="large">
+                                <ControlLabel>Password</ControlLabel>
+                                <FormControl
                                     value={this.state.fields.password}
                                     onChange={this.onInputChange}
-                                    validate={(val) => val ? false : 'Password required'} />
-
-                                <button className='ui fluid large teal submit button'>Login</button>
+                                    type="password"
+                                />
+                            </FormGroup>
+                            <div className="wrapper">
+                                <Button block bsSize="large" disabled={!this.validateForm()} type="submit">Login</Button>
                             </div>
-                            {this.props.isFailed ? <div className="ui message">Login failed</div> : null}
                         </form>
-                    </div>
-                </div>
-            </div>
+                    </Col>
+                </Row>
+                {
+                    this.props.isFailed ?
+                        <Row>
+                            <Col mdOffset={5} md={3}>
+                                <Alert bsStyle="danger">
+                                    <p>Login failed</p>
+                                </Alert>
+                            </Col>
+                        </Row> :
+                        null
+                }
+            </Grid>
         );
     }
 };

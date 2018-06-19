@@ -5,7 +5,7 @@ class Api {
         this.useSessionStorage = (typeof sessionStorage !== 'undefined');
 
         if (this.useSessionStorage) {
-            this.user = sessionStorage.getItem(STORAGE_KEY);
+            this.user = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
         }
     };
 
@@ -20,7 +20,7 @@ class Api {
         }
     }
 
-    getUser = () => this.user && JSON.parse(this.user);
+    getUser = () => this.user;
 
     removeUser() {
         this.user = null;
