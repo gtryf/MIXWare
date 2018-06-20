@@ -50,6 +50,22 @@ class Api {
     logout() {
         this.removeUser();
     }
+
+    getAllWorkspaces() {
+        if (!this.isLoggedIn()) {
+            const error = new Error('Unauthorized');
+            console.error(error);
+            throw error;
+        }
+        const url = '/api/workspaces';
+        return fetch(url, {
+            method: 'get',
+            headers: {
+                accept: 'application/json',
+                authorization: `Bearer ${this.user.token}`
+            },
+        }).then(checkStatus).then(response => response.json());
+    }
 };
 
 function checkStatus(response) {
