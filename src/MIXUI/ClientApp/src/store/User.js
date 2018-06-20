@@ -40,7 +40,17 @@ export const reducer = (state, action) => {
         case loginFailureType:
             return { ...state, isLoading: false, isFailed: true, isLoggedIn: false, currentUser: null };
         case logoutUserType:
-            return { ...state, isLoading: false, isFailed: false, isLoggedIn: false, currentUser: null };
+            return {
+                ...state,
+                isLoading: false,
+                isFailed: false,
+                isLoggedIn: false,
+                currentUser: null,
+                loginFormData: {
+                    username: '',
+                    password: '',
+                }
+            };
         default:
             return state;
     }

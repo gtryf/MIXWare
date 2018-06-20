@@ -41,7 +41,7 @@ class Api {
                 username,
                 password,
             }),
-        }).then(this.checkStatus).then(response => response.json()).then(user => {
+        }).then(checkStatus).then(response => response.json()).then(user => {
             this.setUser(user);
             return user;
         });
@@ -50,18 +50,18 @@ class Api {
     logout() {
         this.removeUser();
     }
-
-    checkStatus(response) {
-        if (response.status >= 200 && response.status < 300) {
-            return response;
-        } else {
-            const error = new Error(`HTTP Error ${response.statusText}`);
-            error.status = response.statusText;
-            error.response = response;
-            console.error(error);
-            throw error;
-        }
-    }
 };
+
+function checkStatus(response) {
+    if (response.status >= 200 && response.status < 300) {
+        return response;
+    } else {
+        const error = new Error(`HTTP Error ${response.statusText}`);
+        error.status = response.statusText;
+        error.response = response;
+        console.error(error);
+        throw error;
+    }
+}
 
 export const client = new Api();
