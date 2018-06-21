@@ -1,21 +1,13 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import { Grid, Row } from 'react-bootstrap';
+import { actions } from '../store/Workspace';
 import Header from './Header';
 import WorkspaceOverview from './WorkspaceOverview';
 
-import { client } from '../Api';
-
 class Workspaces extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            workspaces: []
-        };
-        client.getAllWorkspaces().then(workspaces => {
-            console.log(workspaces);
-            this.setState({ workspaces });
-        });
+    componentDidMount() {
+        this.props.getWorkspaces();
     }
 
     render() {
@@ -24,7 +16,7 @@ class Workspaces extends React.Component {
                 <Header />
                 <Grid>
                     <Row>
-                        {this.state.workspaces.map(w => (<WorkspaceOverview key={w.id} name={w.name} fileCount={w.fileCount} />))}
+                        {this.props.workspaces.map(w => (<WorkspaceOverview key={w.id} name={w.name} fileCount={w.fileCount} />))}
                     </Row>
                 </Grid>
             </div>
@@ -32,4 +24,7 @@ class Workspaces extends React.Component {
     };
 };
 
-export default Workspaces;
+export default connect(
+    (state) => ({ workspaces: state.workspaces }),
+    actions
+)(Workspaces);

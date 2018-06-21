@@ -4,7 +4,7 @@ import React from 'react';
 import { Button, FormGroup, FormControl, ControlLabel, Alert, Row, Grid, Col } from 'react-bootstrap';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
-import { actionCreators } from '../store/User';
+import { actions } from '../store/User';
 
 class Login extends React.Component {
     static propTypes = {
@@ -114,7 +114,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         onSubmit: (credentials) => {
-            dispatch(actionCreators.login(credentials.username, credentials.password));
+            dispatch(actions.login(credentials.username, credentials.password));
         }
     }
 }

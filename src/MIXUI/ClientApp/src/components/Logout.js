@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { actionCreators } from '../store/User';
+import { actions } from '../store/User';
 
 class Logout extends Component {
     static propTypes = {
@@ -32,7 +32,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         handleLogout: () => {
-            dispatch(actionCreators.logout());
+            dispatch(actions.logout());
         }
     }
 }

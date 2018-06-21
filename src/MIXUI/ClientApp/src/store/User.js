@@ -13,20 +13,23 @@ const initialState = {
     isFailed: false,
     isLoggedIn: client.isLoggedIn(),
     currentUser: client.getUser(),
-};
+}
 
 const loginRequest = () => ({ type: loginRequestType });
 const loginSuccess = (userInfo) => ({ type: loginSuccessType });
 const loginFailure = (error) => ({ type: loginFailureType, error });
 
-export const actionCreators = {
+export const actions = {
     login: (username, password) => (dispatch) => {
         dispatch(loginRequest());
         client.login(username, password)
             .then((resp) => { dispatch(loginSuccess(resp)); })
             .catch((err) => { dispatch(loginFailure(err)); });
     },
-    logout: () => ({ type: logoutUserType }),
+    logout: () => {
+        client.logout();
+        return { type: logoutUserType };
+    }
 };
 
 export const reducer = (state, action) => {
