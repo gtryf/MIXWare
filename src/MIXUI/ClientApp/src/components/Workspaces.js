@@ -16,13 +16,13 @@ class Workspaces extends React.Component {
                 <Header />
                 <Grid>
                     <Row>
-                        {this.props.workspaces.map(w => (<WorkspaceOverview key={w.id} name={w.name} fileCount={w.fileCount} />))}
+                        {this.props.workspaces.map(w => <WorkspaceOverview key={w.id} name={w.name} fileCount={w.fileCount} />)}
                     </Row>
                 </Grid>
             </div>
         );
-    };
-};
+    }
+}
 
 export default connect(
     (state) => ({ workspaces: state.workspaces }),
