@@ -13,7 +13,7 @@ const initialState = {
     isFailed: false,
     isLoggedIn: client.isLoggedIn(),
     currentUser: client.getUser(),
-}
+};
 
 const loginRequest = () => ({ type: loginRequestType });
 const loginSuccess = (userInfo) => ({ type: loginSuccessType });

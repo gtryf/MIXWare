@@ -3,8 +3,6 @@ import { Route, Switch, Redirect } from 'react-router';
 import Workspaces from './components/Workspaces';
 import Login from './components/Login';
 import Logout from './components/Logout';
-import Counter from './components/Counter';
-import FetchData from './components/FetchData';
 import PrivateRoute from './components/PrivateRoute';
 
 export default () => ( 
@@ -17,8 +15,5 @@ export default () => (
                 to='/workspaces'
             />
         )} />
-
-        <Route path='/counter' component={Counter} />
-        <Route path='/fetchdata/:startDateIndex?' component={FetchData} />
     </Switch>
 );
