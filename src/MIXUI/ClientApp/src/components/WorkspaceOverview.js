@@ -1,4 +1,4 @@
-﻿import './WorkspaceOverview.css';
+﻿import './Workspaces.css';
 import React from 'react';
 import { Col, Panel } from 'react-bootstrap';
 

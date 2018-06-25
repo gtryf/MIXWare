@@ -1,0 +1,17 @@
+﻿.workspace-overview-body {
+    height: 220px;
+    overflow: hidden;
+}
+
+.workspace-overview-body .center-vertical {
+    height: 100vh;
+}
+
+    .workspace-overview-body .center-vertical svg {
+        position: relative;
+        transform: translateY(100%);
+    }
+    .workspace-overview-body .center-vertical svg:hover {
+        position: relative;
+        transform: translateY(90%);
+    }

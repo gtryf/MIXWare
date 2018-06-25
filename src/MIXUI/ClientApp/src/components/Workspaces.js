@@ -4,6 +4,7 @@ import { Grid, Row } from 'react-bootstrap';
 import { actions } from '../store/Workspace';
 import Header from './Header';
 import WorkspaceOverview from './WorkspaceOverview';
+import AddWorkspace from './AddWorkspace';
 
 class Workspaces extends React.Component {
     componentDidMount() {
@@ -16,6 +17,7 @@ class Workspaces extends React.Component {
                 <Header />
                 <Grid>
                     <Row>
+                        <AddWorkspace />
                         {this.props.workspaces.map(w => <WorkspaceOverview key={w.id} name={w.name} description={w.description} fileCount={w.fileCount} />)}
                     </Row>
                 </Grid>
