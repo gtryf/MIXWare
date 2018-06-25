@@ -12,6 +12,9 @@ namespace MIXUI.Entities
         [StringLength(100, MinimumLength = 5)]
         public virtual string Name { get; set; }
 
+        [StringLength(2000)]
+        public virtual string Description { get; set; }
+
         public string IdentityId { get; set; }
         public virtual AppUser Identity { get; set; }
 

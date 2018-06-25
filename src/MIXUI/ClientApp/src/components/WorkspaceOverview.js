@@ -1,4 +1,5 @@
-﻿import React from 'react';
+﻿import './WorkspaceOverview.css';
+import React from 'react';
 import { Col, Panel } from 'react-bootstrap';
 
 const WorkspaceOverview = (props) => (
@@ -7,9 +8,12 @@ const WorkspaceOverview = (props) => (
             <Panel.Heading>
                 <Panel.Title componentClass="h3">{props.name}</Panel.Title>
             </Panel.Heading>
-            <Panel.Body>
-                <p>File count: {props.fileCount}</p>
+            <Panel.Body className='workspace-overview-body'>
+                <p>{props.description && props.description.length ? props.description : '[No description available]'}</p>
             </Panel.Body>
+            <Panel.Footer>
+                File count: {props.fileCount}
+            </Panel.Footer>
         </Panel>
     </Col>
 );
