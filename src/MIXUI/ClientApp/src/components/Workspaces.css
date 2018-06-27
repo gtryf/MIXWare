@@ -1,6 +1,16 @@
 ﻿.workspace-overview-body {
+    position: relative;
     height: 220px;
+}
+
+.workspace-overview-body .description {
+    height: 140px;
     overflow: hidden;
+}
+
+.workspace-overview-body .action-open {
+    position: absolute;
+    bottom: 8px;
 }
 
 .workspace-overview-body .center-vertical {

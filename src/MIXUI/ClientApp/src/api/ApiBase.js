@@ -89,6 +89,23 @@ class ApiBase {
             },
         }).then(checkStatus);
     }
+
+    putApiAuth(url, body) {
+        if (!this.token) {
+            const error = new Error('Unauthorized');
+            console.error(error);
+            throw error;
+        }
+        return fetch(url, {
+            method: 'put',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Bearer ${this.token}`,
+            },
+            body: JSON.stringify(body),
+        }).then(checkStatus).then(response => response.json());
+    }
 }
 
 function checkStatus(response) {

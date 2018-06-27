@@ -22,6 +22,14 @@ export const actions = {
                     .then((resp) => { dispatch(receiveWorkspaces(resp)); });
             });
     },
+    updateWorkspace: (id, workspace) => (dispatch) => {
+        workspaces.updateWorkspace(id, workspace)
+            .then(() => {
+                dispatch(workspacesRequest());
+                workspaces.getAllWorkspaces()
+                    .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+            });
+    },
     deleteWorkspace: (id) => (dispatch) => {
         workspaces.deleteWorkspace(id)
         .then(() => {
