@@ -27,9 +27,9 @@ namespace MIXUI.Helpers
                         input.Type == FileType.CompiledOutput ? Convert.ToBase64String(input.Data) : Encoding.UTF8.GetString(input.Data)));
 
             CreateMap<Workspace, ShortWorkspaceDto>()
-                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files.Count));
+                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files?.Count ?? 0));
             CreateMap<Workspace, FullWorkspaceDto>()
-                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files.Count));
+                .ForMember(dest => dest.FileCount, opt => opt.ResolveUsing(w => w.Files?.Count ?? 0));
         }
     }
 }

@@ -13,7 +13,15 @@ export const actions = {
         dispatch(workspacesRequest());
         client.getAllWorkspaces()
             .then((resp) => { dispatch(receiveWorkspaces(resp)); });
-    }
+    },
+    createWorkspace: (workspace) => (dispatch) => {
+        client.createWorkspace(workspace)
+            .then(() => {
+                dispatch(workspacesRequest());
+                client.getAllWorkspaces()
+                    .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+            });
+    },
 };
 
 export const reducer = (state, action) => {

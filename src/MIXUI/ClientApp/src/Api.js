@@ -66,6 +66,24 @@ class Api {
             },
         }).then(checkStatus).then(response => response.json());
     }
+
+    createWorkspace(workspace) {
+        if (!this.isLoggedIn()) {
+            const error = new Error('Unauthorized');
+            console.error(error);
+            throw error;
+        }
+        const url = '/api/workspaces';
+        return fetch(url, {
+            method: 'post',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: `Bearer ${this.user.token}`
+            },
+            body: JSON.stringify(workspace),
+        }).then(checkStatus).then(response => response.json());
+    }
 };
 
 function checkStatus(response) {

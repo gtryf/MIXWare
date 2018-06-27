@@ -1,6 +1,6 @@
 ﻿import './Workspaces.css';
 import React from 'react';
-import { Col, Panel } from 'react-bootstrap';
+import { Col, Panel, Button, Glyphicon } from 'react-bootstrap';
 
 const WorkspaceOverview = (props) => (
     <Col xs={12} sm={4} md={4} lg={4}>
@@ -13,6 +13,10 @@ const WorkspaceOverview = (props) => (
             </Panel.Body>
             <Panel.Footer>
                 File count: {props.fileCount}
+                <Button className="pull-right" bsStyle="danger" bsSize="small">
+                    <Glyphicon glyph="trash" />
+                </Button>
+                <div className="clearfix"></div>
             </Panel.Footer>
         </Panel>
     </Col>

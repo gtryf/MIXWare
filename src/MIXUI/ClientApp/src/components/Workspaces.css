@@ -15,3 +15,11 @@
         position: relative;
         transform: translateY(90%);
     }
+
+    .workspace-overview-body.workspace-overview-new-body {
+        height: 270px;
+    }
+
+        .workspace-overview-body.workspace-overview-new-body .center-vertical svg {
+            transform: translateY(150%);
+        }
