@@ -1,11 +1,11 @@
 import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
 
-import { client } from '../Api';
+import { users } from '../api';
 
 const PrivateRoute = ({ component, ...rest }) => (
   <Route {...rest} render={(props) => (
-    client.isLoggedIn() ? (
+    users.isLoggedIn() ? (
       React.createElement(component, props)
     ) : (
       <Redirect to={{

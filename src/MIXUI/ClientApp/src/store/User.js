@@ -1,4 +1,4 @@
-import { client } from '../Api';
+import { users } from '../api';
 
 const loginRequestType = 'LOGIN_REQUEST';
 const loginSuccessType = 'LOGIN_SUCCESS';
@@ -11,8 +11,8 @@ const initialState = {
     },
     isLoading: false,
     isFailed: false,
-    isLoggedIn: client.isLoggedIn(),
-    currentUser: client.getUser(),
+    isLoggedIn: users.isLoggedIn(),
+    currentUser: users.getUser(),
 }
 
 const loginRequest = () => ({ type: loginRequestType });
@@ -22,12 +22,12 @@ const loginFailure = (error) => ({ type: loginFailureType, error });
 export const actions = {
     login: (username, password) => (dispatch) => {
         dispatch(loginRequest());
-        client.login(username, password)
+        users.login(username, password)
             .then((resp) => { dispatch(loginSuccess(resp)); })
             .catch((err) => { dispatch(loginFailure(err)); });
     },
     logout: () => {
-        client.logout();
+        users.logout();
         return { type: logoutUserType };
     }
 };
@@ -39,7 +39,7 @@ export const reducer = (state, action) => {
         case loginRequestType:
             return { ...state, isLoading: true, isFailed: false, isLoggedIn: false, currentUser: null };
         case loginSuccessType:
-            return { ...state, isLoading: false, isFailed: false, isLoggedIn: client.isLoggedIn(), currentUser: client.getUser() };
+            return { ...state, isLoading: false, isFailed: false, isLoggedIn: users.isLoggedIn(), currentUser: users.getUser() };
         case loginFailureType:
             return { ...state, isLoading: false, isFailed: true, isLoggedIn: false, currentUser: null };
         case logoutUserType:

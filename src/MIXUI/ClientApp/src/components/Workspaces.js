@@ -18,7 +18,7 @@ class Workspaces extends React.Component {
                 <Grid>
                     <Row>
                         <AddWorkspace />
-                        {this.props.workspaces.map(w => <WorkspaceOverview key={w.id} name={w.name} description={w.description} fileCount={w.fileCount} />)}
+                        {this.props.workspaces.map(w => <WorkspaceOverview key={w.id} id={w.id} name={w.name} description={w.description} fileCount={w.fileCount} />)}
                     </Row>
                 </Grid>
             </div>

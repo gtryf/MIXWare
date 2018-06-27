@@ -1,4 +1,4 @@
-﻿import { client } from '../Api';
+﻿import { workspaces } from '../api';
 
 const initialState = [];
 
@@ -11,8 +11,24 @@ const receiveWorkspaces = (workspaces) => ({ type: receiveWorkspacesType, worksp
 export const actions = {
     getWorkspaces: () => (dispatch) => {
         dispatch(workspacesRequest());
-        client.getAllWorkspaces()
+        workspaces.getAllWorkspaces()
             .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+    },
+    createWorkspace: (workspace) => (dispatch) => {
+        workspaces.createWorkspace(workspace)
+            .then(() => {
+                dispatch(workspacesRequest());
+                workspaces.getAllWorkspaces()
+                    .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+            });
+    },
+    deleteWorkspace: (id) => (dispatch) => {
+        workspaces.deleteWorkspace(id)
+        .then(() => {
+            dispatch(workspacesRequest());
+            workspaces.getAllWorkspaces()
+                .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+        });
     }
 };
 
