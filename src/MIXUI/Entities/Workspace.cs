@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MIXUI.Entities
 {
-    public class Workspace
+    public class Workspace : EntityBase
     {
         public virtual string Id { get; set; }
 

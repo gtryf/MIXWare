@@ -181,6 +181,10 @@ namespace MIXUI.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
+
                     b.Property<byte[]>("Data")
                         .IsRequired();
 
@@ -192,6 +196,10 @@ namespace MIXUI.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasDefaultValue("Source");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
 
                     b.Property<string>("WorkspaceId");
 
@@ -209,6 +217,10 @@ namespace MIXUI.Migrations
 
                     b.Property<string>("AssemblyFileId");
 
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
+
                     b.Property<string>("ErrorsStr");
 
                     b.Property<string>("IdentityId");
@@ -223,6 +235,10 @@ namespace MIXUI.Migrations
                     b.Property<bool>("Successful");
 
                     b.Property<string>("SymbolFileId");
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
 
                     b.Property<string>("WarningsStr");
 
@@ -240,6 +256,10 @@ namespace MIXUI.Migrations
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<DateTime>("CreatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000);
 
@@ -248,6 +268,10 @@ namespace MIXUI.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100);
+
+                    b.Property<DateTime>("UpdatedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasDefaultValueSql("current_timestamp");
 
                     b.HasKey("Id");
 

@@ -90,6 +90,8 @@ namespace MIXUI.Controllers
             {
                 Status = Entities.SubmissionStatus.New,
                 IdentityId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value,
+                CreatedUtc = DateTime.UtcNow,
+                UpdatedUtc = DateTime.UtcNow,
             };
             await _appDbContext.Submissions.AddAsync(submission);
             await _appDbContext.SaveChangesAsync();
@@ -118,6 +120,8 @@ namespace MIXUI.Controllers
                         Type = data.Type == "card" ? Entities.FileType.Deck : Entities.FileType.CompiledOutput,
                         Data = r.Assembly,
                         WorkspaceId = file.WorkspaceId,
+                        CreatedUtc = DateTime.UtcNow,
+                        UpdatedUtc = DateTime.UtcNow,
                     };
                     await dbContext.Files.AddAsync(assemblyFile);
 
@@ -130,6 +134,8 @@ namespace MIXUI.Controllers
                             Type = Entities.FileType.Listing,
                             Data = Encoding.UTF8.GetBytes(r.Listing),
                             WorkspaceId = file.WorkspaceId,
+                            CreatedUtc = DateTime.UtcNow,
+                            UpdatedUtc = DateTime.UtcNow,
                         };
                         await dbContext.Files.AddAsync(listingFile);
                     }
@@ -141,6 +147,8 @@ namespace MIXUI.Controllers
                             Type = Entities.FileType.SymbolTable,
                             Data = Encoding.UTF8.GetBytes(r.SymbolTable),
                             WorkspaceId = file.WorkspaceId,
+                            CreatedUtc = DateTime.UtcNow,
+                            UpdatedUtc = DateTime.UtcNow,
                         };
                         await dbContext.Files.AddAsync(symbolFile);
                     }

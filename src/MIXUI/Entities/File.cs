@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MIXUI.Entities
 {
-    public class File
+    public class File : EntityBase
     {
 		public string Id { get; set; }
 

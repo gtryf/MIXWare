@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace MIXUI.Entities
 {
-    public class Submission
+    public class Submission : EntityBase
     {
         private string _errors;
         private string _warnings;

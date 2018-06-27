@@ -36,7 +36,10 @@ namespace MIXUI.Controllers
             }
 
             var id = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
-            var workspaces = _appDbContext.Workspaces.AsNoTracking().Include(w => w.Files).Where(w => w.IdentityId == id);
+            var workspaces = _appDbContext.Workspaces.AsNoTracking()
+                .Include(w => w.Files)
+                .Where(w => w.IdentityId == id)
+                .OrderByDescending(w => w.CreatedUtc);
 
             return Ok(_mapper.Map<ICollection<ShortWorkspaceDto>>(workspaces));
         }
@@ -74,6 +77,29 @@ namespace MIXUI.Controllers
             await _appDbContext.SaveChangesAsync();
 
             return CreatedAtRoute("GetWorkspace", new { id = entity.Id }, _mapper.Map<ShortWorkspaceDto>(entity));
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateWorkspace(string id, [FromBody]UpdateWorkspaceDto workspaceDto) {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var workspace = await _appDbContext.Workspaces.FindAsync(id);
+            if (workspace == null)
+            {
+                return NotFound();
+            }
+            if (!(await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            _mapper.Map(workspaceDto, workspace);            
+            await _appDbContext.SaveChangesAsync();
+
+            return Ok(_mapper.Map<ShortWorkspaceDto>(workspace));
         }
 
 		[HttpGet("{workspaceId}/{fileId}", Name = "GetFile")]
@@ -117,7 +143,8 @@ namespace MIXUI.Controllers
                 return Unauthorized();
             }
 
-			var entity = new File() { Name = data.Name, Data = Encoding.UTF8.GetBytes(data.FileContents), WorkspaceId = workspaceId };
+			var entity = _mapper.Map<File>(data);
+            entity.WorkspaceId = workspaceId;
             await _appDbContext.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
 

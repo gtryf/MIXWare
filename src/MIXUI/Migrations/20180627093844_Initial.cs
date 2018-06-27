@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MIXUI.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -154,11 +154,42 @@ namespace MIXUI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Submissions",
+                columns: table => new
+                {
+                    CreatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
+                    UpdatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
+                    Id = table.Column<string>(nullable: false),
+                    IdentityId = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: false, defaultValue: "New"),
+                    Successful = table.Column<bool>(nullable: false),
+                    WordCount = table.Column<int>(nullable: false),
+                    AssemblyFileId = table.Column<string>(nullable: true),
+                    ListingFileId = table.Column<string>(nullable: true),
+                    SymbolFileId = table.Column<string>(nullable: true),
+                    ErrorsStr = table.Column<string>(nullable: true),
+                    WarningsStr = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Submissions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Submissions_AspNetUsers_IdentityId",
+                        column: x => x.IdentityId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Workspaces",
                 columns: table => new
                 {
+                    CreatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
+                    UpdatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
                     Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
+                    Description = table.Column<string>(maxLength: 2000, nullable: true),
                     IdentityId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -176,9 +207,12 @@ namespace MIXUI.Migrations
                 name: "Files",
                 columns: table => new
                 {
+                    CreatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
+                    UpdatedUtc = table.Column<DateTime>(nullable: false, defaultValueSql: "current_timestamp"),
                     Id = table.Column<string>(nullable: false),
                     Name = table.Column<string>(maxLength: 100, nullable: false),
                     Data = table.Column<byte[]>(nullable: false),
+                    Type = table.Column<string>(nullable: false, defaultValue: "Source"),
                     WorkspaceId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -235,6 +269,11 @@ namespace MIXUI.Migrations
                 column: "WorkspaceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Submissions_IdentityId",
+                table: "Submissions",
+                column: "IdentityId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Workspaces_IdentityId",
                 table: "Workspaces",
                 column: "IdentityId");
@@ -259,6 +298,9 @@ namespace MIXUI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Files");
+
+            migrationBuilder.DropTable(
+                name: "Submissions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

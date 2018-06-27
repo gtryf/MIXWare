@@ -30,6 +30,7 @@ class AddWorkspace extends React.Component {
         this.handleShow = this.handleShow.bind(this);
         this.handleClose = this.handleSubmit.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleHide = this.handleHide.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.getNameValidationState = this.getNameValidationState.bind(this);
         this.getDescriptionValidationState = this.getDescriptionValidationState.bind(this);
@@ -45,11 +46,21 @@ class AddWorkspace extends React.Component {
 
         const workspace = this.state.fields;
         this.props.onSubmit(workspace);
-        this.setState({ show: false });
+        const fields = this.state.fields;
+        fields.name = '';
+        fields.description = '';
+        this.setState({ show: false, fields });
     }
 
     handleShow() {
         this.setState({ show: true });
+    }
+
+    handleHide() {
+        const fields = this.state.fields;
+        fields.name = '';
+        fields.description = '';
+        this.setState({ show: false, fields });
     }
 
     getNameValidationState() {
@@ -89,7 +100,7 @@ class AddWorkspace extends React.Component {
                     </Panel.Body>
                 </Panel>
 
-                <Modal show={this.state.show} onHide={this.handleSubmit}>
+                <Modal show={this.state.show} onHide={this.handleHide}>
                     <Modal.Header closeButton>
                         <Modal.Title>Add a new workspace</Modal.Title>
                     </Modal.Header>

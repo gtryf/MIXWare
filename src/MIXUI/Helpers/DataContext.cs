@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using System;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MIXUI.Entities;
 
@@ -19,18 +20,36 @@ namespace MIXUI.Helpers
                 .Property(f => f.Type)
                 .HasDefaultValue(FileType.Source)
                 .HasConversion<string>();
+            builder.Entity<File>()
+                .Property(f => f.UpdatedUtc)
+                .HasDefaultValueSql("current_timestamp");
+            builder.Entity<File>()
+                .Property(f => f.CreatedUtc)
+                .HasDefaultValueSql("current_timestamp");
 
             builder.Entity<Submission>()
                 .Property(s => s.Status)
                 .HasDefaultValue(SubmissionStatus.New)
                 .HasConversion<string>();
-
+            builder.Entity<Submission>()
+                .Property(f => f.UpdatedUtc)
+                .HasDefaultValueSql("current_timestamp");
+            builder.Entity<Submission>()
+                .Property(f => f.CreatedUtc)
+                .HasDefaultValueSql("current_timestamp");
             builder.Entity<Submission>()
                 .Property<string>("ErrorsStr")
                 .HasField("_errors");
             builder.Entity<Submission>()
                 .Property<string>("WarningsStr")
                 .HasField("_warnings");
+
+            builder.Entity<Workspace>()
+                .Property(f => f.UpdatedUtc)
+                .HasDefaultValueSql("current_timestamp");
+            builder.Entity<Workspace>()
+                .Property(f => f.CreatedUtc)
+                .HasDefaultValueSql("current_timestamp");
         }
 
         public DbSet<Workspace> Workspaces { get; set; }
