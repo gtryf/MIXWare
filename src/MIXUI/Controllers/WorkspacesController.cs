@@ -96,7 +96,7 @@ namespace MIXUI.Controllers
                 return Unauthorized();
             }
 
-            _mapper.Map(workspaceDto, workspace);            
+            _mapper.Map(workspaceDto, workspace);
             await _appDbContext.SaveChangesAsync();
 
             return Ok(_mapper.Map<ShortWorkspaceDto>(workspace));

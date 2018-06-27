@@ -4,6 +4,7 @@ import EditWorkspaceInfo from './EditWorkspaceInfo';
 import { Row, Col, Panel, Button, Glyphicon } from 'react-bootstrap';
 import { actions } from '../store/Workspace';
 import { connect } from 'react-redux';
+import { LinkContainer } from 'react-router-bootstrap';
 
 class WorkspaceOverview extends React.Component {
     state = {
@@ -26,7 +27,9 @@ class WorkspaceOverview extends React.Component {
                         <p>{this.props.description && this.props.description.length ? this.props.description : '[No description available]'}</p>
                     </div>
                     <div className="action-open">
-                        <Button bsStyle="primary" bsSize="large">Open</Button>
+                        <LinkContainer to={`/workspaces/${this.props.id}`}>
+                            <Button bsStyle="primary" bsSize="large">Open</Button>
+                        </LinkContainer>
                     </div>
                 </Panel.Body>
                 <Panel.Footer>

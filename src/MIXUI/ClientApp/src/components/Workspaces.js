@@ -5,6 +5,7 @@ import { actions } from '../store/Workspace';
 import Header from './Header';
 import WorkspaceOverview from './WorkspaceOverview';
 import AddWorkspace from './AddWorkspace';
+import Loader from './Loader';
 
 class Workspaces extends React.Component {
     componentDidMount() {
@@ -14,6 +15,7 @@ class Workspaces extends React.Component {
     render() {
         return (
             <div>
+                <Loader show={this.props.isFetching} />
                 <Header />
                 <Grid>
                     <Row>
@@ -27,6 +29,6 @@ class Workspaces extends React.Component {
 }
 
 export default connect(
-    (state) => ({ workspaces: state.workspaces }),
+    (state) => ({ workspaces: state.workspaces.list, isFetching: state.workspaces.isFetching }),
     actions
 )(Workspaces);

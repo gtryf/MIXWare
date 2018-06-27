@@ -18,23 +18,13 @@ namespace MIXUI.Helpers
             CreateMap<AppUser, UserDto>();
 
             CreateMap<Workspace, ShortWorkspaceDto>();
-            CreateMap<CreateWorkspaceDto, Workspace>()
-                .ForMember(dest => dest.UpdatedUtc, opt =>
-                    opt.UseValue(DateTime.UtcNow))
-                .ForMember(dest => dest.CreatedUtc, opt =>
-                    opt.UseValue(DateTime.UtcNow));
-            CreateMap<UpdateWorkspaceDto, Workspace>()
-                .ForMember(dest => dest.UpdatedUtc, opt =>
-                    opt.UseValue(DateTime.UtcNow));
+            CreateMap<CreateWorkspaceDto, Workspace>();
+            CreateMap<UpdateWorkspaceDto, Workspace>();
 
             CreateMap<CreateFileDto, File>()
                 .ForMember(dest => dest.Data, opt =>
                     opt.ResolveUsing(input =>
-                        Encoding.UTF8.GetBytes(input.FileContents)))
-                .ForMember(dest => dest.UpdatedUtc, opt =>
-                    opt.UseValue(DateTime.UtcNow))
-                .ForMember(dest => dest.CreatedUtc, opt =>
-                    opt.UseValue(DateTime.UtcNow));
+                        Encoding.UTF8.GetBytes(input.FileContents)));
 			CreateMap<File, CreatedFileDto>();
 			CreateMap<File, FileDto>()
 				.ForMember(dest => dest.Data, opt => 
