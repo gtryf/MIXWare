@@ -57,7 +57,9 @@ const list = (state = [], action) => {
         case receiveWorkspacesType:
             return action.workspaces;
         case receiveWorkspaceType:
-            return [...state, action.workspace];
+            const workspace = action.workspace;
+            workspace.files = workspace.files || [];
+            return [...state, workspace];
         default:
             return state;
     }

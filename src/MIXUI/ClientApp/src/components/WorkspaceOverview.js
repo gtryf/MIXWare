@@ -1,7 +1,7 @@
 ﻿import './Workspaces.css';
 import React from 'react';
 import EditWorkspaceInfo from './EditWorkspaceInfo';
-import { Row, Col, Panel, Button, Glyphicon } from 'react-bootstrap';
+import { Row, Col, Panel, ButtonToolbar, Button, Glyphicon } from 'react-bootstrap';
 import { actions } from '../store/Workspace';
 import { connect } from 'react-redux';
 import { LinkContainer } from 'react-router-bootstrap';
@@ -38,14 +38,14 @@ class WorkspaceOverview extends React.Component {
                             File count: {this.props.fileCount}
                         </Col>
                         <Col xs={4}>
-                            <div className="btn-toolbar pull-right">
+                                <ButtonToolbar className="pull-right">
                                 <Button bsStyle="primary" bsSize="small" onClick={this.handleShowModal}>
                                     <Glyphicon glyph="edit" />
                                 </Button>
                                 <Button bsStyle="danger" bsSize="small" onClick={() => this.props.onWorkspaceDelete(this.props.id)}>
                                     <Glyphicon glyph="trash" />
                                 </Button>
-                            </div>
+                                </ButtonToolbar>
                         </Col>
                     </Row>
                 </Panel.Footer>

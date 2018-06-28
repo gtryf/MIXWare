@@ -1,23 +1,34 @@
 import React from 'react';
 import Header from './Header';
 import Loader from './Loader';
+import FileList from './FileList';
 import { Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import { connect } from 'react-redux';
-import { actions } from '../store/Workspace';
+import { actions as worskpaceActions } from '../store/Workspace';
+import { actions as fileActions } from '../store/File';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/material.css';
+import '../codemirror/mode/mixal/mixal';
 
 class Workspace extends React.Component {
     state = {
-        value: ''
+        value: this.props.activeFile.data || ''
     }
 
     constructor(props) {
         super(props);
 
-        props.load(props.match.params.workspaceId);
+        props.loadWorkspace();
+    }
+
+    componentWillReceiveProps = (update) => {
+        this.setState({ value: update.activeFile.data });
+    }
+
+    loadFile = (fileId) => {
+        this.props.loadFile(fileId);
     }
 
     renderWorkspace = () => {
@@ -26,7 +37,7 @@ class Workspace extends React.Component {
         }
 
         var options = {
-			lineNumbers: true,
+            lineNumbers: true
 		};
         return (
             <Grid>
@@ -36,28 +47,24 @@ class Workspace extends React.Component {
 
                 <Grid>
                     <Row>
-                        <Col md={2}>
-                            File list goes here
+                        <Col md={4}>
+                            <FileList files={this.props.workspace.files} onFileSelected={this.loadFile} />
                         </Col>
-                        <Col md={10}>
-                            <Grid>
-                                <Row>
-                                    <CodeMirror
-                                        value={this.state.value}
-                                        options={options}
-                                        onBeforeChange={(editor, data, value) => {
-                                          this.setState({value});
-                                        }}
-                                        onChange={(editor, data, value) => {
-                                        }}
-                                    />
-                                </Row>
+                        <Col md={8}>
+                            <CodeMirror
+                                value={this.state.value}
+                                options={options}
+                                onBeforeChange={(editor, data, value) => {
+                                    this.setState({ value });
+                                }}
+                                onChange={(editor, data, value) => {
+                                }}
+                            />
+                        </Col>
+                    </Row>
 
-                                <Row>
-                                    Simulator goes here
-                                </Row>
-                            </Grid>
-                        </Col>
+                    <Row>
+                        Simulator goes here
                     </Row>
                 </Grid>
             </Grid>
@@ -79,14 +86,18 @@ function mapStateToProps(state, ownProps) {
     return {
         isFetching: state.workspaces.isFetching,
         workspace: state.workspaces.list.find(item => item.id === ownProps.match.params.workspaceId),
+        activeFile: state.files.file,
     };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch, ownProps) {
     return {
-        load: (id) => {
-            dispatch(actions.getWorkspace(id));
-        } 
+        loadWorkspace: () => {
+            dispatch(worskpaceActions.getWorkspace(ownProps.match.params.workspaceId));
+        },
+        loadFile: (id) => {
+            dispatch(fileActions.getFile(ownProps.match.params.workspaceId, id));
+        }
     };
 }
 

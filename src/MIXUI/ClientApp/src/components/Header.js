@@ -15,10 +15,10 @@ const Header = props => (
             </Navbar.Header>
             <Navbar.Collapse>
                 <Nav>
-                    <LinkContainer to='about'>
+                    <LinkContainer to='/about'>
                         <NavItem eventKey={1}>About</NavItem>
                     </LinkContainer>
-                    <LinkContainer to='workspaces'>
+                    <LinkContainer to='/workspaces'>
                         <NavItem eventKey={2}>Workspaces</NavItem>
                     </LinkContainer>
                 </Nav>
