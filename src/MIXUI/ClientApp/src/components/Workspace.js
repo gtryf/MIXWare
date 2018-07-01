@@ -2,33 +2,14 @@ import React from 'react';
 import Header from './Header';
 import Loader from './Loader';
 import FileList from './FileList';
+import Editor from './Editor';
 import { Grid, Row, Col, PageHeader } from 'react-bootstrap';
-import { Controlled as CodeMirror } from 'react-codemirror2';
 import { connect } from 'react-redux';
-import { actions as worskpaceActions } from '../store/Workspace';
-import { actions as fileActions } from '../store/File';
-
-import 'codemirror/lib/codemirror.css';
-import 'codemirror/theme/material.css';
-import '../codemirror/mode/mixal/mixal';
+import { actions } from '../store/Workspace';
 
 class Workspace extends React.Component {
-    state = {
-        value: this.props.activeFile.data || ''
-    }
-
-    constructor(props) {
-        super(props);
-
-        props.loadWorkspace();
-    }
-
-    componentWillReceiveProps = (update) => {
-        this.setState({ value: update.activeFile.data });
-    }
-
-    loadFile = (fileId) => {
-        this.props.loadFile(fileId);
+    componentWillMount = () => {
+        this.props.loadWorkspace();
     }
 
     renderWorkspace = () => {
@@ -36,9 +17,6 @@ class Workspace extends React.Component {
             return null;
         }
 
-        var options = {
-            lineNumbers: true
-		};
         return (
             <Grid>
                 <PageHeader>
@@ -48,18 +26,10 @@ class Workspace extends React.Component {
                 <Grid>
                     <Row>
                         <Col md={4}>
-                            <FileList files={this.props.workspace.files} onFileSelected={this.loadFile} />
+                            <FileList workspaceId={this.props.workspace.id} files={this.props.workspace.files} onFileSelected={this.loadFile} />
                         </Col>
                         <Col md={8}>
-                            <CodeMirror
-                                value={this.state.value}
-                                options={options}
-                                onBeforeChange={(editor, data, value) => {
-                                    this.setState({ value });
-                                }}
-                                onChange={(editor, data, value) => {
-                                }}
-                            />
+                            <Editor workspaceId={this.props.match.params.workspaceId} fileId={this.props.match.params.fileId} />
                         </Col>
                     </Row>
 
@@ -93,11 +63,8 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch, ownProps) {
     return {
         loadWorkspace: () => {
-            dispatch(worskpaceActions.getWorkspace(ownProps.match.params.workspaceId));
+            dispatch(actions.getWorkspace(ownProps.match.params.workspaceId));
         },
-        loadFile: (id) => {
-            dispatch(fileActions.getFile(ownProps.match.params.workspaceId, id));
-        }
     };
 }
 

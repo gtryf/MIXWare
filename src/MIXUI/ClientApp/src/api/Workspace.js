@@ -10,6 +10,8 @@ class Workspace extends ApiBase {
     deleteWorkspace = (id) => this.deleteApiAuth(`${RESOURCE_URL}/${id}`);
 
     getFile = (workspaceId, fileId) => this.getApiAuth(`${RESOURCE_URL}/${workspaceId}/${fileId}`);
+    createFile = (workspaceId, file) => this.postApiAuth(`${RESOURCE_URL}/${workspaceId}`, file);
+    updateFile = (workspaceId, fileId, file) => this.putApiAuth(`${RESOURCE_URL}/${workspaceId}/${fileId}`, file);
 }
 
 export default Workspace;

@@ -6,10 +6,20 @@ const workspacesRequestType = 'WORKSPACES_REQUEST';
 const receiveWorkspaceType = 'RECEIVE_WORKSPACE';
 const receiveWorkspacesType = 'RECEIVE_WORKSPACES';
 
+const updateFileRequestType = 'UPDATE_FILE_REQUEST';
+const finishUpdateFileType = 'FINISH_UPDATE_FILE';
+const createFileRequestType = 'CREATE_FILE_REQUEST';
+const finishCreateFileType = 'FINISH_CREATE_FILE';
+
 const workspaceRequest = (id) => ({ type: workspaceRequestType, id });
 const workspacesRequest = () => ({ type: workspacesRequestType });
 const receiveWorkspace = (workspace) => ({ type: receiveWorkspaceType, workspace });
 const receiveWorkspaces = (workspaces) => ({ type: receiveWorkspacesType, workspaces });
+
+const createFileRequest = () => ({ type: createFileRequestType });
+const updateFileRequest = () => ({ type: updateFileRequestType });
+const finishCreateFile = (file) => ({ type: finishCreateFileType, file });
+const finishUpdateFile = (file) => ({ type: finishUpdateFileType, file });
 
 export const actions = {
     getWorkspaces: () => (dispatch) => {
@@ -45,6 +55,28 @@ export const actions = {
             workspaces.getAllWorkspaces()
                 .then((resp) => { dispatch(receiveWorkspaces(resp)); });
         });
+    },
+
+
+    createFile: (workspaceId, file) => (dispatch) => {
+        dispatch(createFileRequest());
+        workspaces.createFile(workspaceId, file)
+            .then((resp) => { dispatch(finishCreateFile(resp)); })
+            .then(() => {
+                dispatch(workspaceRequest(workspaceId));
+                workspaces.getWorkspace(workspaceId)
+                    .then((resp) => { dispatch(receiveWorkspace(resp)); });
+            });
+    },
+    updateFile: (workspaceId, fileId, file) => (dispatch) => {
+        dispatch(updateFileRequest());
+        workspaces.updateFile(workspaceId, fileId, file)
+            .then((resp) => { dispatch(finishUpdateFile(resp)); })
+            .then(() => {
+                dispatch(workspaceRequest(workspaceId));
+                workspaces.getWorkspace(workspaceId)
+                    .then((resp) => { dispatch(receiveWorkspace(resp)); });
+            });
     }
 };
 
