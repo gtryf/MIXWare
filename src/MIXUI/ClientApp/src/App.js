@@ -9,7 +9,7 @@ import PrivateRoute from './components/PrivateRoute';
 export default () => ( 
     <Switch>
         <PrivateRoute exact path='/workspaces' component={Workspaces} />
-        <PrivateRoute path='/workspaces/:workspaceId' component={Workspace} />
+        <PrivateRoute path='/workspaces/:workspaceId/:fileId?' component={Workspace} />
         <Route path='/login' component={Login} />
         <Route path='/logout' component={Logout} />
         <Route exact path='/' render={() => (

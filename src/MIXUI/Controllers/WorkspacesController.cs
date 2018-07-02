@@ -105,7 +105,6 @@ namespace MIXUI.Controllers
 		[HttpGet("{workspaceId}/{fileId}", Name = "GetFile")]
 		public async Task<IActionResult> GetFileById(string workspaceId, string fileId)
         {
-            var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
             if (workspace == null)
             {
@@ -132,7 +131,6 @@ namespace MIXUI.Controllers
         [HttpPost("{workspaceId}")]
 		public async Task<ActionResult> CreateFile(string workspaceId, [FromBody]CreateFileDto data)
         {
-            var userId = User.FindFirst(Constants.Strings.JwtClaimIdentifiers.Id).Value;
             var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
             if (workspace == null)
             {
@@ -149,6 +147,39 @@ namespace MIXUI.Controllers
             await _appDbContext.SaveChangesAsync();
 
             return CreatedAtRoute("GetFile", new { workspaceId = workspaceId, fileId = entity.Id }, _mapper.Map<CreatedFileDto>(entity));
+		}
+
+        [HttpPut("{workspaceId}/{fileId}")]
+		public async Task<ActionResult> UpdateFile(string workspaceId, string fileId, [FromBody]CreateFileDto data)
+        {
+            var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
+            if (workspace == null)
+            {
+                return NotFound();
+            }
+            if (!(await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
+            {
+                return Unauthorized();
+            }
+
+			var file = await _appDbContext.Files.FindAsync(fileId);
+			if (file == null)
+            {
+                return NotFound();
+            }
+			if (file.WorkspaceId != workspaceId) 
+			{
+				return BadRequest(Errors.AddErrorToModelState("NotInWorkspace", "The specified file does not belong to this workspace", ModelState));
+			}
+            if (!(await _authorizationService.AuthorizeAsync(User, file, "SameUserPolicy")).Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            _mapper.Map(data, file);
+			await _appDbContext.SaveChangesAsync();
+
+            return Ok(_mapper.Map<FileDto>(file));
 		}
 
         [HttpDelete("{id}")]

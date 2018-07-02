@@ -39,7 +39,8 @@ CodeMirror.defineMode("mixal", function () {
                             "inc6 dec6 ent6 enn6 " +
                             "incx decx entx ennx " +
                             "cmpa cmp1 cmp2 cmp3 cmp4 cmp5 cmp6 cmpx");
-    const isOperatorChar = /[+\-*/:,()]/;
+    const operatorChar = /[+\-*/:,()=]/;
+    const whiteSpaceChar = /[\t ]/;
     
     const tokenBase = (stream, state) => {
         if (stream.sol() && stream.peek() === '*') {
@@ -63,14 +64,15 @@ CodeMirror.defineMode("mixal", function () {
 
     const op = (stream, state) => {
         if (stream.eatSpace()) return null;
-
         state.tokenize = operand;
+        
         stream.eatWhile(/[^\t ]/);
-        const s = stream.current().toLowerCase();
-        stream.eatSpace();
         if (stream.eol()) {
             state.tokenize = tokenBase;
         }
+        
+        const s = stream.current().toLowerCase();
+        
         if (pseudos && pseudos.propertyIsEnumerable(s)) {
             if (s === "alf") {
                 state.tokenize = alf;
@@ -84,32 +86,44 @@ CodeMirror.defineMode("mixal", function () {
     }
 
     const operand = (stream, state) => {
+        if (stream.eatSpace()) return null;
+        state.tokenize = parseOperand;
+        if (stream.eol()) {
+            state.tokenize = tokenBase;
+        }
+        
+        return state.tokenize(stream, state);
+    }
+
+    const parseOperand = (stream, state) => {
+        let style;
+
         if (stream.match(/^[0-9A-Za-z]+/)) {
             if (stream.eol()) {
                 state.tokenize = tokenBase;
             }
             const s = stream.current();
             if (/^\d+$/.test(s)) {
-                return 'number';
+                style = 'number';
             } else {
-                return 'identifier';
+                style = 'identifier';
             }
         }
-        if (isOperatorChar.test(stream.peek())) {
+        else if (operatorChar.test(stream.peek())) {
             stream.next();
             if (stream.eol()) {
                 state.tokenize = tokenBase;
             }
-            return 'operator';
+            style = 'operator';
         }
-        
-        stream.eatSpace();
-        state.tokenize = comment;
-        return state.tokenize(stream, state);
+        else if (whiteSpaceChar.test(stream.peek())) {
+            state.tokenize = comment;
+        }
+
+        return style;
     }
 
     const alf = (stream, state) => {
-        console.log('alf', stream);
         state.tokenize = comment;
         if (stream.eat(' ')) {
             stream.eat(' ');
@@ -119,12 +133,18 @@ CodeMirror.defineMode("mixal", function () {
             stream.next();
             stream.next();
 
+            if (stream.eol()) {
+                state.tokenize = tokenBase;
+            }
+
             return 'string';
         }
         return 'error';
     }
 
     const comment = (stream, state) => {
+        if (stream.eatSpace()) return null;
+        
         stream.skipToEnd();
         state.tokenize = tokenBase;
         return 'comment';
