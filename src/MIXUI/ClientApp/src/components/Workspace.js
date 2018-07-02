@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { actions } from '../store/Workspace';
 
 class Workspace extends React.Component {
-    componentWillMount = () => {
+    componentDidMount = () => {
         this.props.loadWorkspace();
     }
 
@@ -26,10 +26,10 @@ class Workspace extends React.Component {
                 <Grid>
                     <Row>
                         <Col md={4}>
-                            <FileList workspaceId={this.props.workspace.id} files={this.props.workspace.files} onFileSelected={this.loadFile} />
+                            <FileList files={this.props.workspace.files} />
                         </Col>
                         <Col md={8}>
-                            <Editor workspaceId={this.props.match.params.workspaceId} fileId={this.props.match.params.fileId} />
+                            <Editor />
                         </Col>
                     </Row>
 
@@ -56,7 +56,7 @@ function mapStateToProps(state, ownProps) {
     return {
         isFetching: state.workspaces.isFetching,
         workspace: state.workspaces.list.find(item => item.id === ownProps.match.params.workspaceId),
-        activeFile: state.files.file,
+        activeFile: state.workspaces.activeFile,
     };
 }
 

@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Table, Well } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
+import Link from './Link';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faCode, faFileArchive, faTrash, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -11,7 +12,10 @@ const SourceFile = (props) => (
     <tr>
         <td className="text-muted text-right">{props.index}</td>
         <td className="text-left">
-            <FontAwesomeIcon icon={faCode} />&nbsp;<Link to={`/workspaces/${props.workspaceId}/${props.file.id}`}><strong>{props.file.name}</strong></Link>
+            <FontAwesomeIcon icon={faCode} />&nbsp;
+            <Link to={`/workspaces/${props.workspaceId}/${props.file.id}`}>
+                <strong>{props.file.name}</strong>
+            </Link>
         </td>
         <td className="text-right">{(props.file.size / 1024.0).toFixed(2)}KB</td>
         <td className="text-right">
@@ -48,7 +52,7 @@ const FileList = (props) => (
     </div>
 )
 
-const EmptyFileList = (props) => (
+const EmptyFileList = () => (
     <Well>
         <h3>Nothing here</h3>
         <p>No files in this workspace.</p>
@@ -76,11 +80,11 @@ const NonemptyFileList = (props) => (
         <tbody>
             {props.files.map((file, index) => (
                 (file.type === 'Source' || file.type === 'Deck') ?
-                    <SourceFile workspaceId={props.workspaceId} key={file.id} file={file} index={index + 1} onFileSelected={props.onFileSelected} /> :
+                    <SourceFile workspaceId={props.match.params.workspaceId} key={file.id} file={file} index={index + 1} onFileSelected={props.onFileSelected} /> :
                     <OtherFile key={file.id} file={file} index={index + 1} />
             ))}
         </tbody>
     </Table>
 );
 
-export default FileList;
+export default withRouter(FileList);

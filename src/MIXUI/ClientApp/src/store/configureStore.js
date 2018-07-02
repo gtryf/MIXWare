@@ -4,13 +4,11 @@ import thunk from 'redux-thunk';
 import { routerReducer, routerMiddleware } from 'react-router-redux';
 import * as User from './User';
 import * as Workspace from './Workspace';
-import * as File from './File';
 
 export default function configureStore(history, initialState) {
     const reducers = {
         users: User.reducer,
         workspaces: Workspace.reducer,
-        files: File.reducer,
     };
 
     const middleware = [

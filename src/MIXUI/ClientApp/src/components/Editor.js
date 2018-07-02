@@ -2,8 +2,8 @@ import React from 'react';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import { Panel, Nav, NavItem } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { actions as workspaceActions } from '../store/Workspace';
-import { actions as fileActions } from '../store/File';
+import { withRouter } from 'react-router-dom';
+import { actions } from '../store/Workspace';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faSave } from '@fortawesome/free-solid-svg-icons';
@@ -18,40 +18,66 @@ library.add(faSave);
 
 class Editor extends React.Component {
     state = {
-        text: this.props.text || ''
+        text: this.props.text || '',
+        fileName: this.props.fileName || '[untitled]',
     }
 
     componentDidMount = () => {
-        if (this.props.fileId) {
-            this.props.loadFile(this.props.fileId);
+        const { fileId } = this.props.match.params;
+        if (fileId) {
+            this.props.loadFile(fileId);
         } else {
             this.props.clearFile();
         }
     }
 
     componentWillReceiveProps = (update) => {
-        this.setState({ text: update.text });
-        if (update.fileId && this.props.fileId !== update.fileId) {
-            this.props.loadFile(update.fileId);
-        } else if (!update.fileId) {
+        this.setState({ text: update.text, fileName: update.fileName || '[untitled]' });
+    }
+
+    componentDidUpdate = (prevProps) => {
+        const { fileId } = this.props.match.params;
+        const { fileId: prevFileId } = prevProps.match.params;
+
+        if (fileId && prevFileId !== fileId) {
+            this.props.loadFile(fileId);
+        } else if (!fileId) {
             this.props.clearFile();
         }
     }
 
     saveFile = () => {
-        if (this.props.fileId) {
-            this.props.updateFile(this.props.fileId, {
-                name: this.props.fileName,
+        const { fileId } = this.props.match.params;
+        if (fileId) {
+            this.props.updateFile({
+                name: this.state.fileName,
                 fileContents: this.state.text
             });
         } else {
             let name = prompt('Please enter the file name');
             if (name) {
-                this.props.createFile({
-                    name,
-                    fileContents: this.state.text
+                this.setState({ fileName: name }, () => {
+                    this.props.createFile({
+                        name,
+                        fileContents: this.state.text
+                    });
                 });
             }
+        }
+    }
+
+    renameFile = () => {
+        const { fileId } = this.props.match.params;
+        let name = prompt('Please enter the file name');
+        if (name) {
+            this.setState({ fileName: name }, () => {
+                if (fileId) {
+                    this.props.updateFile({
+                        name: this.state.fileName,
+                        fileContents: this.state.text
+                    });
+                }
+            });
         }
     }
 
@@ -63,8 +89,8 @@ class Editor extends React.Component {
             <Panel className='panel-editor'>
                 <Panel.Heading>
                     <Nav bsStyle='pills'>
-                        <NavItem>
-                            {this.props.fileName ? this.props.fileName : '[untitled]'}
+                        <NavItem onClick={this.renameFile}>
+                            {this.state.fileName}
                         </NavItem>
                         <NavItem onClick={this.saveFile}>
                             <FontAwesomeIcon icon={faSave} />
@@ -87,25 +113,25 @@ class Editor extends React.Component {
     }
 }
 
-const EditorContainer = connect(
+const EditorContainer = withRouter(connect(
     (state) => ({
-        text: state.files.file.data,
-        fileName: state.files.file.name,
+        text: state.workspaces.activeFile.data,
+        fileName: state.workspaces.activeFile.name,
     }),
     (dispatch, ownProps) => ({
         loadFile: (id) => {
-            dispatch(fileActions.getFile(ownProps.workspaceId, id));
+            dispatch(actions.getFile(ownProps.match.params.workspaceId, id));
         },
         clearFile: () => {
-            dispatch(fileActions.clearFile());
+            dispatch(actions.clearFile());
         },
         createFile: (file) => {
-            dispatch(workspaceActions.createFile(ownProps.workspaceId, file));
+            dispatch(actions.createFile(ownProps.match.params.workspaceId, file));
         },
-        updateFile: (fileId, file) => {
-            dispatch(workspaceActions.updateFile(ownProps.workspaceId, fileId, file));
+        updateFile: (file) => {
+            dispatch(actions.updateFile(ownProps.match.params.workspaceId, ownProps.match.params.fileId, file));
         }
     })
-)(Editor);
+)(Editor));
 
 export default EditorContainer;
