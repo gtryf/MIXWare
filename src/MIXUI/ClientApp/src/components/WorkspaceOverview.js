@@ -15,6 +15,12 @@ class WorkspaceOverview extends React.Component {
         this.setState({ modalVisible: true });
     }
 
+    handleDelete = () => {
+        if (window.confirm('Are you sure?')) {
+            this.props.onWorkspaceDelete(this.props.id);
+        }
+    }
+
     render = () =>
     (
         <Col xs={12} sm={4} md={4} lg={4}>
@@ -42,7 +48,7 @@ class WorkspaceOverview extends React.Component {
                                 <Button bsStyle="primary" bsSize="small" onClick={this.handleShowModal}>
                                     <Glyphicon glyph="edit" />
                                 </Button>
-                                <Button bsStyle="danger" bsSize="small" onClick={() => this.props.onWorkspaceDelete(this.props.id)}>
+                                <Button bsStyle="danger" bsSize="small" onClick={this.handleDelete}>
                                     <Glyphicon glyph="trash" />
                                 </Button>
                                 </ButtonToolbar>
