@@ -3,6 +3,7 @@ import Header from './Header';
 import Loader from './Loader';
 import FileList from './FileList';
 import Editor from './Editor';
+import { withRouter } from 'react-router-dom';
 import { Grid, Row, Col, PageHeader } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { actions } from '../store/Workspace';
@@ -10,6 +11,16 @@ import { actions } from '../store/Workspace';
 class Workspace extends React.Component {
     componentDidMount = () => {
         this.props.loadWorkspace();
+    }
+
+    onFileDelete = (id) => {
+        if (window.confirm('Are you sure?')) {
+            const parent = `/workspaces/${this.props.match.params.workspaceId}`;
+            if (parent + '/' + id === this.props.history.location.pathname) {
+                this.props.history.push(parent);
+            }
+            this.props.deleteFile(id);
+        }
     }
 
     renderWorkspace = () => {
@@ -26,7 +37,7 @@ class Workspace extends React.Component {
                 <Grid>
                     <Row>
                         <Col md={4}>
-                            <FileList files={this.props.workspace.files} />
+                            <FileList files={this.props.workspace.files} onFileDelete={this.onFileDelete} />
                         </Col>
                         <Col md={8}>
                             <Editor />
@@ -65,10 +76,13 @@ function mapDispatchToProps(dispatch, ownProps) {
         loadWorkspace: () => {
             dispatch(actions.getWorkspace(ownProps.match.params.workspaceId));
         },
+        deleteFile: (fileId) => {
+            dispatch(actions.deleteFile(ownProps.match.params.workspaceId, fileId));
+        }
     };
 }
 
-export default connect(
+export default withRouter(connect(
     mapStateToProps,
     mapDispatchToProps
-)(Workspace);
+)(Workspace));

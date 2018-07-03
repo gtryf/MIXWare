@@ -182,6 +182,39 @@ namespace MIXUI.Controllers
             return Ok(_mapper.Map<FileDto>(file));
 		}
 
+        [HttpDelete("{workspaceId}/{fileId}")]
+		public async Task<ActionResult> DeleteFile(string workspaceId, string fileId)
+        {
+            var workspace = await _appDbContext.Workspaces.FindAsync(workspaceId);
+            if (workspace == null)
+            {
+                return NotFound();
+            }
+            if (!(await _authorizationService.AuthorizeAsync(User, workspace, "SameUserPolicy")).Succeeded)
+            {
+                return Unauthorized();
+            }
+
+			var file = await _appDbContext.Files.FindAsync(fileId);
+			if (file == null)
+            {
+                return NotFound();
+            }
+			if (file.WorkspaceId != workspaceId) 
+			{
+				return BadRequest(Errors.AddErrorToModelState("NotInWorkspace", "The specified file does not belong to this workspace", ModelState));
+			}
+            if (!(await _authorizationService.AuthorizeAsync(User, file, "SameUserPolicy")).Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            _appDbContext.Remove(file);
+			await _appDbContext.SaveChangesAsync();
+
+            return NoContent();
+		}
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWorkspace(string id)
         {

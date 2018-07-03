@@ -13,10 +13,12 @@ const finishCreateWorkspaceType = 'FINISH_CREATE_WORKSPACE'
 const finishUpdateWorkspaceType = 'FINISH_UPDATE_WORKSPACE'
 const finishDeleteWorkspaceType = 'FINISH_DELETE_WORKSPACE';
 
-const updateFileRequestType = 'UPDATE_FILE_REQUEST';
-const finishUpdateFileType = 'FINISH_UPDATE_FILE';
 const createFileRequestType = 'CREATE_FILE_REQUEST';
+const updateFileRequestType = 'UPDATE_FILE_REQUEST';
+const deleteFileRequestType = 'DELETE_FILE_REQUEST';
 const finishCreateFileType = 'FINISH_CREATE_FILE';
+const finishUpdateFileType = 'FINISH_UPDATE_FILE';
+const finishDeleteFileType = 'FINISH_DELETE_FILE';
 
 const fileRequestType = 'FILE_REQUEST';
 const receiveFileType = 'RECEIVE_FILE';
@@ -36,8 +38,10 @@ const finishDeleteWorkspace = (id) => ({ type: finishDeleteWorkspaceType, id });
 
 const createFileRequest = () => ({ type: createFileRequestType });
 const updateFileRequest = () => ({ type: updateFileRequestType });
+const deleteFileRequest = () => ({ type: deleteFileRequestType });
 const finishCreateFile = (file) => ({ type: finishCreateFileType, file });
 const finishUpdateFile = (file) => ({ type: finishUpdateFileType, file });
+const finishDeleteFile = (workspaceId, fileId) => ({ type: finishDeleteFileType, workspaceId, fileId });
 
 const fileRequest = () => ({ type: fileRequestType });
 const receiveFile = (file) => ({ type: receiveFileType, file });
@@ -85,6 +89,11 @@ export const actions = {
         dispatch(updateFileRequest());
         client.updateFile(workspaceId, fileId, file)
             .then((resp) => { dispatch(finishUpdateFile(resp)); });
+    },
+    deleteFile: (workspaceId, fileId) => (dispatch) => {
+        dispatch(deleteFileRequest());
+        client.deleteFile(workspaceId, fileId)
+            .then(() => { dispatch(finishDeleteFile(workspaceId, fileId)); });
     }
 };
 
@@ -161,6 +170,16 @@ const list = (state = [], action) => {
                     }
                 }
             });
+        case finishDeleteFileType:
+            return state.map(workspace => {
+                if (workspace.id !== action.workspaceId) {
+                    return workspace;
+                }
+                return {
+                    ...workspace,
+                    files: workspace.files.filter(x => x.id !== action.fileId),
+                }
+            })
         default:
             return state;
     }

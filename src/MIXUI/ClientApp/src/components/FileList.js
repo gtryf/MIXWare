@@ -19,7 +19,7 @@ const SourceFile = (props) => (
         </td>
         <td className="text-right">{(props.file.size / 1024.0).toFixed(2)}KB</td>
         <td className="text-right">
-            <a role="button">
+            <a role="button" onClick={() => props.onFileDelete(props.file.id)}>
                 <FontAwesomeIcon icon={faTrash} />
             </a>
         </td>
@@ -35,7 +35,7 @@ const OtherFile = (props) => (
             <a role="button">
                 <FontAwesomeIcon icon={faDownload} />
             </a>
-            <a role="button">
+            <a role="button" onClick={() => props.onFileDelete(props.file.id)}>
                 <FontAwesomeIcon icon={faTrash} />
             </a>
         </td>
@@ -80,8 +80,8 @@ const NonemptyFileList = (props) => (
         <tbody>
             {props.files.map((file, index) => (
                 (file.type === 'Source' || file.type === 'Deck') ?
-                    <SourceFile workspaceId={props.match.params.workspaceId} key={file.id} file={file} index={index + 1} onFileSelected={props.onFileSelected} /> :
-                    <OtherFile key={file.id} file={file} index={index + 1} />
+                    <SourceFile workspaceId={props.match.params.workspaceId} key={file.id} file={file} index={index + 1} onFileDelete={props.onFileDelete} /> :
+                    <OtherFile key={file.id} file={file} index={index + 1} onFileDelete={props.onFileDelete} />
             ))}
         </tbody>
     </Table>
