@@ -2,6 +2,13 @@
 	color: #000000;
 }
 
+.panel-editor .panel-heading .nav-pills > li.active > a, 
+.panel-editor .panel-heading .nav-pills > li.active > a:hover, 
+.panel-editor .panel-heading .nav-pills > li.active > a:focus {
+	color: #000000;
+	background-color: transparent;
+}
+
 .panel-editor .panel-body {
 	padding: 0;
 }

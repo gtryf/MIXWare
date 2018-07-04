@@ -25,7 +25,9 @@ namespace MIXUI.Helpers
                 .ForMember(dest => dest.Data, opt =>
                     opt.ResolveUsing(input =>
                         Encoding.UTF8.GetBytes(input.FileContents)));
-			CreateMap<File, CreatedFileDto>();
+			CreateMap<File, CreatedFileDto>()
+                .ForMember(dest => dest.Size, opt =>
+                    opt.ResolveUsing(input => input.Data.Length));
             CreateMap<File, FileDto>()
                 .ForMember(dest => dest.Data, opt =>
                     opt.ResolveUsing(input =>

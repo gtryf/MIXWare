@@ -1,12 +1,13 @@
 import React from 'react';
 import { Controlled as CodeMirror } from 'react-codemirror2';
 import { Panel, Nav, NavItem } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { actions } from '../store/Workspace';
 
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faSave } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faFile } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import 'codemirror/lib/codemirror.css';
@@ -14,7 +15,7 @@ import 'codemirror/theme/material.css';
 import './Editor.css';
 import '../codemirror/mode/mixal/mixal';
 
-library.add(faSave);
+library.add(faSave, faFile);
 
 class Editor extends React.Component {
     state = {
@@ -22,27 +23,34 @@ class Editor extends React.Component {
         fileName: this.props.fileName || '[untitled]',
     }
 
+    clearState = () => {
+        this.setState({
+            text: '', 
+            fileName: '[untitled]' 
+        });
+    }
+
     componentDidMount = () => {
         const { fileId } = this.props.match.params;
         if (fileId) {
             this.props.loadFile(fileId);
         } else {
-            this.props.clearFile();
+            this.clearState();
         }
     }
 
     componentWillReceiveProps = (update) => {
-        this.setState({ text: update.text, fileName: update.fileName || '[untitled]' });
-    }
+        this.setState({
+            text: update.text, 
+            fileName: update.fileName || '[untitled]' 
+        });
 
-    componentDidUpdate = (prevProps) => {
-        const { fileId } = this.props.match.params;
-        const { fileId: prevFileId } = prevProps.match.params;
-
+        const { fileId: prevFileId } = this.props.match.params;
+        const { fileId } = update.match.params;
         if (fileId && prevFileId !== fileId) {
             this.props.loadFile(fileId);
         } else if (!fileId) {
-            this.props.clearFile();
+            this.clearState();
         }
     }
 
@@ -60,6 +68,11 @@ class Editor extends React.Component {
                     this.props.createFile({
                         name,
                         fileContents: this.state.text
+                    }).then(() => {
+                        const { activeFileId } = this.props;
+                        const { workspaceId } = this.props.match.params;
+                        const path = `/workspaces/${workspaceId}/${activeFileId}`;
+                        this.props.history.push(path);
                     });
                 });
             }
@@ -68,6 +81,7 @@ class Editor extends React.Component {
 
     renameFile = () => {
         const { fileId } = this.props.match.params;
+        if (!fileId) { return; }
         let name = prompt('Please enter the file name');
         if (name) {
             this.setState({ fileName: name }, () => {
@@ -82,6 +96,7 @@ class Editor extends React.Component {
     }
 
     render() {
+        const { workspaceId } = this.props.match.params;
         var options = {
             lineNumbers: true
 		};
@@ -92,6 +107,11 @@ class Editor extends React.Component {
                         <NavItem onClick={this.renameFile}>
                             {this.state.fileName}
                         </NavItem>
+                        <LinkContainer to={`/workspaces/${workspaceId}`}>
+                            <NavItem>
+                                <FontAwesomeIcon icon={faFile} />
+                            </NavItem>
+                        </LinkContainer>
                         <NavItem onClick={this.saveFile}>
                             <FontAwesomeIcon icon={faSave} />
                         </NavItem>
@@ -115,22 +135,14 @@ class Editor extends React.Component {
 
 const EditorContainer = withRouter(connect(
     (state) => ({
+        activeFileId: state.workspaces.activeFile.id,
         text: state.workspaces.activeFile.data,
         fileName: state.workspaces.activeFile.name,
     }),
     (dispatch, ownProps) => ({
-        loadFile: (id) => {
-            dispatch(actions.getFile(ownProps.match.params.workspaceId, id));
-        },
-        clearFile: () => {
-            dispatch(actions.clearFile());
-        },
-        createFile: (file) => {
-            dispatch(actions.createFile(ownProps.match.params.workspaceId, file));
-        },
-        updateFile: (file) => {
-            dispatch(actions.updateFile(ownProps.match.params.workspaceId, ownProps.match.params.fileId, file));
-        }
+        loadFile: (id) => dispatch(actions.getFile(ownProps.match.params.workspaceId, id)),
+        createFile: (file) => dispatch(actions.createFile(ownProps.match.params.workspaceId, file)),
+        updateFile: (file) => dispatch(actions.updateFile(ownProps.match.params.workspaceId, ownProps.match.params.fileId, file)),
     })
 )(Editor));
 

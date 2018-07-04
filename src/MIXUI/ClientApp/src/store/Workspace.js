@@ -50,50 +50,50 @@ const clearFileRequest = () => ({ type: clearFileRequestType });
 export const actions = {
     getWorkspaces: () => (dispatch) => {
         dispatch(workspacesRequest());
-        client.getAllWorkspaces()
-            .then((resp) => { dispatch(receiveWorkspaces(resp)); });
+        return client.getAllWorkspaces()
+            .then((resp) => dispatch(receiveWorkspaces(resp)));
     },
     getWorkspace: (id) => (dispatch) => {
         dispatch(workspaceRequest(id));
-        client.getWorkspace(id)
-            .then((resp) => { dispatch(receiveWorkspace(resp)); });
+        return client.getWorkspace(id)
+            .then((resp) => dispatch(receiveWorkspace(resp)));
     },
     createWorkspace: (workspace) => (dispatch) => {
         dispatch(createWorkspaceRequest());
-        client.createWorkspace(workspace)
-            .then((resp) => { dispatch(finishCreateWorkspace(resp)); });
+        return client.createWorkspace(workspace)
+            .then((resp) => dispatch(finishCreateWorkspace(resp)));
     },
     updateWorkspace: (id, workspace) => (dispatch) => {
         dispatch(updateWorkspaceRequest());
-        client.updateWorkspace(id, workspace)
-            .then((resp) => { dispatch(finishUpdateWorkspace(resp)); });
+        return client.updateWorkspace(id, workspace)
+            .then((resp) => dispatch(finishUpdateWorkspace(resp)));
     },
     deleteWorkspace: (id) => (dispatch) => {
         dispatch(deleteWorkspaceRequest());
-        client.deleteWorkspace(id)
-            .then(() => { dispatch(finishDeleteWorkspace(id)); });
+        return client.deleteWorkspace(id)
+            .then(() => dispatch(finishDeleteWorkspace(id)));
     },
 
     getFile: (workspaceId, fileId) => (dispatch) => {
         dispatch(fileRequest());
-        client.getFile(workspaceId, fileId)
-            .then((resp) => { dispatch(receiveFile(resp)); });
+        return client.getFile(workspaceId, fileId)
+            .then((resp) => dispatch(receiveFile(resp)));
     },
     clearFile: clearFileRequest,
     createFile: (workspaceId, file) => (dispatch) => {
         dispatch(createFileRequest());
-        client.createFile(workspaceId, file)
-            .then((resp) => { dispatch(finishCreateFile(resp)); });
+        return client.createFile(workspaceId, file)
+            .then((resp) => dispatch(finishCreateFile(resp)));
     },
     updateFile: (workspaceId, fileId, file) => (dispatch) => {
         dispatch(updateFileRequest());
-        client.updateFile(workspaceId, fileId, file)
-            .then((resp) => { dispatch(finishUpdateFile(resp)); });
+        return client.updateFile(workspaceId, fileId, file)
+            .then((resp) => dispatch(finishUpdateFile(resp)));
     },
     deleteFile: (workspaceId, fileId) => (dispatch) => {
         dispatch(deleteFileRequest());
-        client.deleteFile(workspaceId, fileId)
-            .then(() => { dispatch(finishDeleteFile(workspaceId, fileId)); });
+        return client.deleteFile(workspaceId, fileId)
+            .then(() => dispatch(finishDeleteFile(workspaceId, fileId)));
     }
 };
 
@@ -190,6 +190,8 @@ const activeFile = (state = {}, action) => {
         case clearFileRequestType:
         case fileRequestType:
             return {};
+        case finishCreateFileType:
+        case finishUpdateFileType:
         case receiveFileType:
             return action.file;
         default:

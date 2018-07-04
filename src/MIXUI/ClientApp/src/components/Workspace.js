@@ -11,6 +11,15 @@ import { actions } from '../store/Workspace';
 class Workspace extends React.Component {
     componentDidMount = () => {
         this.props.loadWorkspace();
+        if (!this.props.match.params.fileId) {
+            this.props.clearFile();
+        }
+    }
+
+    componentDidUpdate = (prevProps) => {
+        if (prevProps.match.params.fileId && !this.props.match.params.fileId) {
+            this.props.clearFile();
+        }
     }
 
     onFileDelete = (id) => {
@@ -76,6 +85,7 @@ function mapDispatchToProps(dispatch, ownProps) {
         loadWorkspace: () => {
             dispatch(actions.getWorkspace(ownProps.match.params.workspaceId));
         },
+        clearFile: () => dispatch(actions.clearFile()),
         deleteFile: (fileId) => {
             dispatch(actions.deleteFile(ownProps.match.params.workspaceId, fileId));
         }
