@@ -29,11 +29,13 @@ namespace MIXUI
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
+        private readonly IHostingEnvironment _env;
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -131,37 +133,40 @@ namespace MIXUI
             services.AddSingleton<IHostedService, QueuedHostedService>();
             services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
-            // Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
+            if (_env.IsDevelopment())
             {
-                c.SwaggerDoc("v1", new Info
+                // Register the Swagger generator, defining 1 or more Swagger documents
+                services.AddSwaggerGen(c =>
                 {
-                    Version = "v1",
-                    Title = "MIXWare API",
-                    Description = "Web API for the MIX Simulator",
-                    Contact = new Contact
+                    c.SwaggerDoc("v1", new Info
                     {
-                        Name = "George Tryfonas",
-                        Email = "george.tryfonas@gmail.com"
-                    },
-                    License = new License
-                    {
-                        Name = "MIT",
-                        Url = "https://opensource.org/licenses/MIT"
-                    }
-                });
+                        Version = "v1",
+                        Title = "MIXWare API",
+                        Description = "Web API for the MIX Simulator",
+                        Contact = new Contact
+                        {
+                            Name = "George Tryfonas",
+                            Email = "george.tryfonas@gmail.com"
+                        },
+                        License = new License
+                        {
+                            Name = "MIT",
+                            Url = "https://opensource.org/licenses/MIT"
+                        }
+                    });
 
                 // Set the comments path for the Swagger JSON and UI.
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                c.IncludeXmlComments(xmlPath);
-            });
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    c.IncludeXmlComments(xmlPath);
+                });
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -175,15 +180,18 @@ namespace MIXUI
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
+            if (_env.IsDevelopment())
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "MIXWare API V1");
-            });
+                // Enable middleware to serve generated Swagger as a JSON endpoint.
+                app.UseSwagger();
+
+                // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
+                // specifying the Swagger JSON endpoint.
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "MIXWare API V1");
+                });
+            }
 
             app.UseAuthentication();
             app.UseMvc(routes =>
@@ -197,7 +205,7 @@ namespace MIXUI
             {
                 spa.Options.SourcePath = "ClientApp";
 
-                if (env.IsDevelopment())
+                if (_env.IsDevelopment())
                 {
                     spa.UseReactDevelopmentServer(npmScript: "start");
                 }

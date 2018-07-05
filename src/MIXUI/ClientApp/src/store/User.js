@@ -22,9 +22,9 @@ const loginFailure = (error) => ({ type: loginFailureType, error });
 export const actions = {
     login: (username, password) => (dispatch) => {
         dispatch(loginRequest());
-        users.login(username, password)
-            .then((resp) => { dispatch(loginSuccess(resp)); })
-            .catch((err) => { dispatch(loginFailure(err)); });
+        return users.login(username, password)
+            .then((resp) => dispatch(loginSuccess(resp)))
+            .catch((err) => dispatch(loginFailure(err)));
     },
     logout: () => {
         users.logout();
