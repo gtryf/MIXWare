@@ -2,27 +2,21 @@ const STORAGE_KEY = 'api-token';
 
 class ApiBase {
     constructor() {
-        this.useSessionStorage = (typeof sessionStorage !== 'undefined');
-
-        if (this.useSessionStorage) {
-            this.token = sessionStorage.getItem(STORAGE_KEY);
+        if (typeof sessionStorage === 'undefined') {
+            const error = new Error('Cannot handle this kind of browser');
+            console.error(error);
+            throw error;
         }
     };
 
     setToken(token) {
-        this.token = token;
-
-        if (this.useSessionStorage) {
-            sessionStorage.setItem(STORAGE_KEY, token);            
-        }
+        sessionStorage.setItem(STORAGE_KEY, token);
     }
 
+    getToken = () => sessionStorage.getItem(STORAGE_KEY);
+
     removeToken() {
-        this.token = null;
-        
-        if (this.useSessionStorage) {
-            sessionStorage.removeItem(STORAGE_KEY);
-        }
+        sessionStorage.removeItem(STORAGE_KEY);
     }
 
     postApi(url, body) {
@@ -37,7 +31,7 @@ class ApiBase {
     }
 
     postApiAuth(url, body) {
-        if (!this.token) {
+        if (!this.getToken()) {
             const error = new Error('Unauthorized');
             console.error(error);
             throw error;
@@ -47,14 +41,14 @@ class ApiBase {
             headers: {
                 accept: 'application/json',
                 'content-type': 'application/json',
-                authorization: `Bearer ${this.token}`,
+                authorization: `Bearer ${this.getToken()}`,
             },
             body: JSON.stringify(body),
         }).then(checkStatus).then(response => response.json());
     }
 
     getApiAuth(url, params = {}) {
-        if (!this.token) {
+        if (!this.getToken()) {
             const error = new Error('Unauthorized');
             console.error(error);
             throw error;
@@ -64,7 +58,7 @@ class ApiBase {
             method: 'get',
             headers: {
                 accept: 'application/json',
-                authorization: `Bearer ${this.token}`,
+                authorization: `Bearer ${this.getToken()}`,
             },
         }).then(checkStatus).then(response => response.json());
     }
@@ -91,7 +85,7 @@ class ApiBase {
     }
 
     putApiAuth(url, body) {
-        if (!this.token) {
+        if (!this.getToken()) {
             const error = new Error('Unauthorized');
             console.error(error);
             throw error;
@@ -101,7 +95,7 @@ class ApiBase {
             headers: {
                 accept: 'application/json',
                 'content-type': 'application/json',
-                authorization: `Bearer ${this.token}`,
+                authorization: `Bearer ${this.getToken()}`,
             },
             body: JSON.stringify(body),
         }).then(checkStatus).then(response => response.json());
