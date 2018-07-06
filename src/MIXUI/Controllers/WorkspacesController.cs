@@ -140,8 +140,12 @@ namespace MIXUI.Controllers
             {
                 return Unauthorized();
             }
+            if (await _appDbContext.Files.AnyAsync(i => i.Name == data.Name && i.WorkspaceId == workspaceId))
+            {
+                return Conflict();
+            }
 
-			var entity = _mapper.Map<File>(data);
+            var entity = _mapper.Map<File>(data);
             entity.WorkspaceId = workspaceId;
             await _appDbContext.AddAsync(entity);
             await _appDbContext.SaveChangesAsync();
@@ -174,6 +178,10 @@ namespace MIXUI.Controllers
             if (!(await _authorizationService.AuthorizeAsync(User, file, "SameUserPolicy")).Succeeded)
             {
                 return Unauthorized();
+            }
+            if (await _appDbContext.Files.AnyAsync(i => i.Name == data.Name && i.WorkspaceId == workspaceId && i.Id != fileId))
+            {
+                return Conflict();
             }
 
             _mapper.Map(data, file);

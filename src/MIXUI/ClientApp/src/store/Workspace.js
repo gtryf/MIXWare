@@ -45,7 +45,6 @@ const finishDeleteFile = (workspaceId, fileId) => ({ type: finishDeleteFileType,
 
 const fileRequest = () => ({ type: fileRequestType });
 const receiveFile = (file) => ({ type: receiveFileType, file });
-const clearFileRequest = () => ({ type: clearFileRequestType });
 
 export const actions = {
     getWorkspaces: () => (dispatch) => {
@@ -79,7 +78,7 @@ export const actions = {
         return client.getFile(workspaceId, fileId)
             .then((resp) => dispatch(receiveFile(resp)));
     },
-    clearFile: clearFileRequest,
+    clearFile: () => ({ type: clearFileRequestType }),
     createFile: (workspaceId, file) => (dispatch) => {
         dispatch(createFileRequest());
         return client.createFile(workspaceId, file)
@@ -201,9 +200,13 @@ const activeFile = (state = {}, action) => {
 
 const isFetching = (state = false, action) => {
     switch (action.type) {
+        case updateFileRequestType:
+        case deleteFileRequestType:
         case workspacesRequestType:
         case workspaceRequestType:
             return true;
+        case finishUpdateFileType:
+        case finishDeleteFileType:
         case receiveWorkspacesType:
         case receiveWorkspaceType:
             return false;

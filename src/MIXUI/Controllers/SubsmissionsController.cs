@@ -123,6 +123,10 @@ namespace MIXUI.Controllers
                         CreatedUtc = DateTime.UtcNow,
                         UpdatedUtc = DateTime.UtcNow,
                     };
+                    if (await dbContext.Files.AnyAsync(i => i.Name == assemblyFile.Name && i.WorkspaceId == file.WorkspaceId))
+                    {
+                        dbContext.Remove(await dbContext.Files.SingleAsync(i => i.Name == assemblyFile.Name && i.WorkspaceId == file.WorkspaceId));
+                    }
                     await dbContext.Files.AddAsync(assemblyFile);
 
                     Entities.File listingFile = null, symbolFile = null;
@@ -137,6 +141,10 @@ namespace MIXUI.Controllers
                             CreatedUtc = DateTime.UtcNow,
                             UpdatedUtc = DateTime.UtcNow,
                         };
+                        if (await dbContext.Files.AnyAsync(i => i.Name == listingFile.Name && i.WorkspaceId == file.WorkspaceId))
+                        {
+                            dbContext.Remove(await dbContext.Files.SingleAsync(i => i.Name == listingFile.Name && i.WorkspaceId == file.WorkspaceId));
+                        }
                         await dbContext.Files.AddAsync(listingFile);
                     }
                     if (data.ProduceSymbolTable)
@@ -150,6 +158,10 @@ namespace MIXUI.Controllers
                             CreatedUtc = DateTime.UtcNow,
                             UpdatedUtc = DateTime.UtcNow,
                         };
+                        if (await dbContext.Files.AnyAsync(i => i.Name == symbolFile.Name && i.WorkspaceId == file.WorkspaceId))
+                        {
+                            dbContext.Remove(await dbContext.Files.SingleAsync(i => i.Name == symbolFile.Name && i.WorkspaceId == file.WorkspaceId));
+                        }
                         await dbContext.Files.AddAsync(symbolFile);
                     }
 
