@@ -17,8 +17,11 @@ const createFileRequestType = 'CREATE_FILE_REQUEST';
 const updateFileRequestType = 'UPDATE_FILE_REQUEST';
 const deleteFileRequestType = 'DELETE_FILE_REQUEST';
 const finishCreateFileType = 'FINISH_CREATE_FILE';
+const createFileErrorType = 'ERROR_CREATE_FILE';
 const finishUpdateFileType = 'FINISH_UPDATE_FILE';
+const updateFileErrorType = 'ERROR_UPDATE_FILE';
 const finishDeleteFileType = 'FINISH_DELETE_FILE';
+const deleteFileErrorType = 'ERROR_DELETE_FILE';
 
 const fileRequestType = 'FILE_REQUEST';
 const receiveFileType = 'RECEIVE_FILE';
@@ -40,8 +43,11 @@ const createFileRequest = () => ({ type: createFileRequestType });
 const updateFileRequest = () => ({ type: updateFileRequestType });
 const deleteFileRequest = () => ({ type: deleteFileRequestType });
 const finishCreateFile = (file) => ({ type: finishCreateFileType, file });
+const createFileError = () => ({ type: createFileErrorType });
 const finishUpdateFile = (file) => ({ type: finishUpdateFileType, file });
+const updateFileError = () => ({ type: updateFileErrorType });
 const finishDeleteFile = (workspaceId, fileId) => ({ type: finishDeleteFileType, workspaceId, fileId });
+const deleteFileError = () => ({ type: deleteFileErrorType });
 
 const fileRequest = () => ({ type: fileRequestType });
 const receiveFile = (file) => ({ type: receiveFileType, file });
@@ -82,17 +88,32 @@ export const actions = {
     createFile: (workspaceId, file) => (dispatch) => {
         dispatch(createFileRequest());
         return client.createFile(workspaceId, file)
-            .then((resp) => dispatch(finishCreateFile(resp)));
+            .then(
+                (resp) => dispatch(finishCreateFile(resp)),
+                () => {
+                    dispatch(createFileError());
+                    alert('Failed to create file.');
+                });
     },
     updateFile: (workspaceId, fileId, file) => (dispatch) => {
         dispatch(updateFileRequest());
         return client.updateFile(workspaceId, fileId, file)
-            .then((resp) => dispatch(finishUpdateFile(resp)));
+            .then(
+                (resp) => dispatch(finishUpdateFile(resp)),
+                () => {
+                    dispatch(updateFileError());
+                    alert('Failed to perform update.');
+                });
     },
     deleteFile: (workspaceId, fileId) => (dispatch) => {
         dispatch(deleteFileRequest());
         return client.deleteFile(workspaceId, fileId)
-            .then(() => dispatch(finishDeleteFile(workspaceId, fileId)));
+            .then(
+                () => dispatch(finishDeleteFile(workspaceId, fileId)),
+                () => {
+                    dispatch(deleteFileError());
+                    alert('Failed to delete file.');
+                });
     }
 };
 
@@ -205,8 +226,11 @@ const isFetching = (state = false, action) => {
         case workspacesRequestType:
         case workspaceRequestType:
             return true;
+        case createFileErrorType:
         case finishUpdateFileType:
+        case updateFileErrorType:
         case finishDeleteFileType:
+        case deleteFileErrorType:
         case receiveWorkspacesType:
         case receiveWorkspaceType:
             return false;
