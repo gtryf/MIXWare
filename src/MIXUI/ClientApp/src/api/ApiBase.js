@@ -31,6 +31,7 @@ class ApiBase {
     }
 
     postApiAuth(url, body) {
+        console.trace('post', url, body);
         if (!this.getToken()) {
             const error = new Error('Unauthorized');
             console.error(error);
@@ -74,12 +75,17 @@ class ApiBase {
     }
 
     deleteApiAuth(url, params = {}) {
+        if (!this.getToken()) {
+            const error = new Error('Unauthorized');
+            console.error(error);
+            throw error;
+        }
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
         return fetch(url, {
             method: 'delete',
             headers: {
                 accept: 'application/json',
-                authorization: `Bearer ${this.token}`,
+                authorization: `Bearer ${this.getToken()}`,
             },
         }).then(checkStatus);
     }
