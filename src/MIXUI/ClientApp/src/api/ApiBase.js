@@ -31,7 +31,6 @@ class ApiBase {
     }
 
     postApiAuth(url, body) {
-        console.trace('post', url, body);
         if (!this.getToken()) {
             const error = new Error('Unauthorized');
             console.error(error);
@@ -45,7 +44,14 @@ class ApiBase {
                 authorization: `Bearer ${this.getToken()}`,
             },
             body: JSON.stringify(body),
-        }).then(checkStatus).then(response => response.json());
+        }).then(checkStatus).then(response => {
+            if (response.status === 202) {
+                console.log(response.headers);
+                return {};
+            } else {
+                return response.json()
+            }
+        });
     }
 
     getApiAuth(url, params = {}) {
